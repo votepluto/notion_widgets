@@ -29,17 +29,19 @@
 
     html, body{
       margin: 0;
+      padding: 0;
+      height: 100%;
       background: transparent;
-      color: var(--ink);
       font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
+    /* FULL-WIDTH HEADER BAND */
     .header{
       width: 100%;
+      min-height: 100vh;
       padding: 16px clamp(16px, 3vw, 32px);
-      border: none;
-      border-radius: 0;
-      box-shadow: none;
+      display: flex;
+      align-items: flex-start;
 
       background:
         radial-gradient(140% 180% at 85% -20%, var(--rose) 0%, transparent 65%),
@@ -48,6 +50,7 @@
     }
 
     .row{
+      width: 100%;
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
@@ -67,7 +70,6 @@
       height: 28px;
       display: grid;
       place-items: center;
-      font-weight: 700;
       color: var(--muted);
       opacity: 0.75;
     }
@@ -76,6 +78,7 @@
       font-size: 22px;
       font-weight: 800;
       letter-spacing: -0.02em;
+      color: var(--ink);
     }
 
     /* MIDDLE */
@@ -89,7 +92,6 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--muted);
-
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -108,6 +110,7 @@
       font-size: 22px;
       font-weight: 900;
       letter-spacing: -0.02em;
+      color: var(--ink);
     }
 
     .ampm{
@@ -146,7 +149,7 @@
 
   <script>
     function pad(n){
-      return String(n).padStart(2,"0");
+      return String(n).padStart(2, "0");
     }
 
     function ordinal(n){
@@ -168,7 +171,7 @@
       const mm = pad(now.getMinutes());
 
       document.getElementById("greet").textContent =
-        h24 < 12 ? "✿ Good morning" : "✿ Good evening";
+        h24 < 12 ? "☀︎ Good morning" : "☾ Good evening";
 
       const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
       const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
