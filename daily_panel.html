@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Panel</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      /* neutral lavender-grey base */
+      --bgA: #f8f6f9;
+      --bgB: #f1eef3;
+
+      --ink: rgba(55, 45, 60, 0.88);
+      --muted: rgba(55, 45, 60, 0.48);
+
+      /* extremely desaturated tints */
+      --rose: rgba(190, 185, 205, 0.22);
+      --blush: rgba(210, 205, 215, 0.18);
+
+      --card: rgba(255,255,255,0.42);
+      --border: rgba(55, 45, 60, 0.06);
+    }
+
+    *{
+      box-sizing: border-box;
+    }
+
+    html, body{
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--ink);
+    }
+
+    /* full-height band to absorb Notion iframe space */
+    .band{
+      min-height: 100vh;
+      padding: 12px;
+      background:
+        radial-gradient(120% 160% at 85% -20%, var(--rose) 0%, transparent 72%),
+        radial-gradient(140% 180% at -20% 130%, var(--blush) 0%, transparent 75%),
+        linear-gradient(180deg, var(--bgA) 0%, var(--bgB) 100%);
+    }
+
+    /* narrow sidebar container */
+    .panel{
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      display: grid;
+      gap: 8px;
+    }
+
+    /* top label */
+    .panelTitle{
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 4px 2px;
+    }
+
+    /* sections */
+    .section{
+      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 10px 8px 8px;
+    }
+
+    /* section header */
+    .summary{
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      padding: 6px 6px;
+    }
+
+    .summary::-webkit-details-marker{
+      display: none;
+    }
+
+    .summaryLeft{
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* chevron */
+    .chev{
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+      opacity: 0.7;
+      transition: transform 180ms ease;
+    }
+
+    .section[open] .chev{
+      transform: rotate(180deg);
+    }
+
+    /* hover polish (desktop) */
+    .summary:hover{
+      background: rgba(255,255,255,0.20);
+    }
+
+    .section:hover{
+      border-color: rgba(55, 45, 60, 0.08);
+    }
+
+    /* cards */
+    .card{
+      border-top: 1px solid rgba(55, 45, 60, 0.04);
+      padding: 8px 6px 6px;
+      margin-top: 6px;
+    }
+
+    /* card title */
+    .titleRow{
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .title{
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: rgba(55, 45, 60, 0.75);
+    }
+
+    /* images (quiet mode) */
+    .widgetLink{
+      display: block;
+    }
+
+    .widgetImg{
+      width: 100%;
+      height: auto;
+      display: block;
+      max-width: 100%;
+      opacity: 0.95;
+    }
+
+    /* footer */
+    .credits{
+      font-size: 11px;
+      color: var(--muted);
+      padding: 4px 2px;
+    }
+
+    .credits a{
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(55, 45, 60, 0.18);
+    }
+
+    .credits a:hover{
+      color: var(--ink);
+      border-bottom-color: rgba(55, 45, 60, 0.30);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="band">
+    <div class="panel">
+
+      <div class="panelTitle">Daily</div>
+
+      <details class="section">
+        <summary class="summary">
+          <span class="summaryLeft">Words</span>
+          <span class="chev">▾</span>
+        </summary>
+
+        <div class="card">
+          <div class="titleRow">
+            <div class="title">Word</div>
+          </div>
+          <a class="widgetLink"
+             href="https://www.thefreedictionary.com/_/WoD/png-click.aspx?t=wod"
+             target="_blank"
+             rel="noopener">
+            <img class="widgetImg"
+                 src="https://www.thefreedictionary.com/_/!wod!350!0.png"
+                 alt="Word of the Day">
+          </a>
+        </div>
+
+        <div class="card">
+          <div class="titleRow">
+            <div class="title">Quote</div>
+          </div>
+          <a class="widgetLink"
+             href="https://www.thefreedictionary.com/_/WoD/png-click.aspx?t=quote"
+             target="_blank"
+             rel="noopener">
+            <img class="widgetImg"
+                 src="https://www.thefreedictionary.com/_/!quote!350!1.png"
+                 alt="Quote of the Day">
+          </a>
+        </div>
+      </details>
+
+      <details class="section">
+        <summary class="summary">
+          <span class="summaryLeft">Articles</span>
+          <span class="chev">▾</span>
+        </summary>
+
+        <div class="card">
+          <div class="titleRow">
+            <div class="title">Article</div>
+          </div>
+          <a class="widgetLink"
+             href="https://www.thefreedictionary.com/_/WoD/png-click.aspx?t=aod"
+             target="_blank"
+             rel="noopener">
+            <img class="widgetImg"
+                 src="https://www.thefreedictionary.com/_/!aod!350!3.png"
+                 alt="Article of the Day">
+          </a>
+        </div>
+
+        <div class="card">
+          <div class="titleRow">
+            <div class="title">History</div>
+          </div>
+          <a class="widgetLink"
+             href="https://www.thefreedictionary.com/_/WoD/png-click.aspx?t=history"
+             target="_blank"
+             rel="noopener">
+            <img class="widgetImg"
+                 src="https://www.thefreedictionary.com/_/!history!350!3.png"
+                 alt="This Day in History">
+          </a>
+        </div>
+      </details>
+
+      <details class="section">
+        <summary class="summary">
+          <span class="summaryLeft">This Day in History</span>
+          <span class="chev">▾</span>
+        </summary>
+
+        <div class="card">
+          <div class="titleRow">
+            <div class="title">Birthday</div>
+          </div>
+          <a class="widgetLink"
+             href="https://www.thefreedictionary.com/_/WoD/png-click.aspx?t=birthday"
+             target="_blank"
+             rel="noopener">
+            <img class="widgetImg"
+                 src="https://www.thefreedictionary.com/_/!birthday!350!3.png"
+                 alt="Today's Birthday">
+          </a>
+        </div>
+
+        <div class="card">
+          <div class="titleRow">
+            <div class="title">Holiday</div>
+          </div>
+          <a class="widgetLink"
+             href="https://www.thefreedictionary.com/_/WoD/png-click.aspx?t=holiday"
+             target="_blank"
+             rel="noopener">
+            <img class="widgetImg"
+                 src="https://www.thefreedictionary.com/_/!holiday!350!3.png"
+                 alt="Today's Holiday">
+          </a>
+        </div>
+      </details>
+
+      <div class="credits">
+        Source:
+        <a href="https://www.thefreedictionary.com/"
+           target="_blank"
+           rel="nofollow noopener">
+          TheFreeDictionary
+        </a>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
