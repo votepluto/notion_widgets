@@ -3,144 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Soft Header Greeting</title>
+  <title>Notion Soft Header</title>
 
+  <!-- Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg1: #fffdf9;
-      --bg2: #fbf7f2;
-      --ink: rgba(38, 36, 33, 0.92);
-      --muted: rgba(38, 36, 33, 0.58);
-      --border: rgba(38, 36, 33, 0.10);
-      --shadow: rgba(38, 36, 33, 0.06);
-      --shadow2: rgba(38, 36, 33, 0.04);
-      --pill: rgba(38, 36, 33, 0.06);
-      --pillBorder: rgba(38, 36, 33, 0.10);
+      --bgA: #fdf7fb;
+      --bgB: #f6eef6;
+
+      --ink: rgba(58, 40, 65, 0.88);
+      --muted: rgba(58, 40, 65, 0.52);
+
+      --pill: rgba(58, 40, 65, 0.05);
+      --pillBorder: rgba(58, 40, 65, 0.08);
+
+      --rose: rgba(236, 200, 255, 0.35);
+      --blush: rgba(255, 210, 240, 0.30);
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root{
-        --bg1: #23201c;
-        --bg2: #1d1b18;
-        --ink: rgba(255, 255, 255, 0.92);
-        --muted: rgba(255, 255, 255, 0.60);
-        --border: rgba(255, 255, 255, 0.12);
-        --shadow: rgba(0, 0, 0, 0.35);
-        --shadow2: rgba(0, 0, 0, 0.22);
-        --pill: rgba(255, 255, 255, 0.07);
-        --pillBorder: rgba(255, 255, 255, 0.12);
-      }
-    }
+    *{ box-sizing: border-box; }
 
     html, body{
       margin: 0;
       background: transparent;
-      font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: var(--ink);
+      font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* Full-width header */
     .header{
       width: 100%;
-      padding: 18px 22px;
-      border-radius: 18px;
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, var(--bg1), var(--bg2));
-      box-shadow: 0 14px 40px var(--shadow), 0 6px 18px var(--shadow2);
-      position: relative;
-      overflow: hidden;
-    }
+      padding: 16px clamp(16px, 3vw, 32px);
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
 
-    /* dreamy glow accents */
-    .header::before{
-      content:"";
-      position:absolute;
-      top:-80px; right:-70px;
-      width: 220px; height: 220px;
-      background: radial-gradient(circle at 30% 30%, rgba(255, 214, 233, 0.32), rgba(255, 214, 233, 0));
-      pointer-events:none;
-      filter: blur(1px);
-    }
-    .header::after{
-      content:"";
-      position:absolute;
-      bottom:-90px; left:-90px;
-      width: 260px; height: 260px;
-      background: radial-gradient(circle at 60% 60%, rgba(214, 232, 255, 0.24), rgba(214, 232, 255, 0));
-      pointer-events:none;
-      filter: blur(1px);
+      background:
+        radial-gradient(140% 180% at 85% -20%, var(--rose) 0%, transparent 65%),
+        radial-gradient(160% 200% at -20% 130%, var(--blush) 0%, transparent 70%),
+        linear-gradient(180deg, var(--bgA) 0%, var(--bgB) 100%);
     }
 
     .row{
-      position: relative;
-      z-index: 1;
-      display: flex;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
+      gap: 18px;
     }
 
+    /* LEFT */
     .left{
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 12px;
-      min-width: 220px;
+      white-space: nowrap;
     }
 
     .badge{
-      width: 36px;
-      height: 36px;
-      border-radius: 14px;
-      background: var(--pill);
-      border: 1px solid var(--pillBorder);
+      width: 28px;
+      height: 28px;
       display: grid;
       place-items: center;
-      font-weight: 800;
+      font-weight: 700;
       color: var(--muted);
-      flex: 0 0 auto;
-    }
-
-    .textBlock{
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      opacity: 0.75;
     }
 
     .greet{
       font-size: 22px;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: -0.02em;
-      line-height: 1.15;
+    }
+
+    /* MIDDLE */
+    .middle{
+      min-width: 0;
+      text-align: center;
     }
 
     .date{
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
       color: var(--muted);
+
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
+    /* RIGHT */
     .right{
-      display: flex;
+      display: inline-flex;
       align-items: baseline;
       gap: 10px;
+      white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
 
     .time{
-      font-size: 26px;
-      font-weight: 800;
+      font-size: 22px;
+      font-weight: 900;
       letter-spacing: -0.02em;
-      white-space: nowrap;
     }
 
     .ampm{
       font-size: 12px;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
@@ -148,16 +120,7 @@
       background: var(--pill);
       border: 1px solid var(--pillBorder);
       border-radius: 999px;
-      transform: translateY(-3px);
-      white-space: nowrap;
-    }
-
-    /* Mobile-friendly stacking */
-    @media (max-width: 420px){
-      .header{ padding: 16px 16px; }
-      .greet{ font-size: 20px; }
-      .time{ font-size: 24px; }
-      .right{ width: 100%; justify-content: flex-start; }
+      transform: translateY(-2px);
     }
   </style>
 </head>
@@ -167,13 +130,14 @@
     <div class="row">
       <div class="left">
         <div class="badge">✿</div>
-        <div class="textBlock">
-          <div class="greet" id="greet"></div>
-          <div class="date" id="date"></div>
-        </div>
+        <div class="greet" id="greet"></div>
       </div>
 
-      <div class="right" aria-label="Current time">
+      <div class="middle">
+        <div class="date" id="date"></div>
+      </div>
+
+      <div class="right">
         <div class="time" id="time"></div>
         <div class="ampm" id="ampm"></div>
       </div>
@@ -181,37 +145,39 @@
   </div>
 
   <script>
-    const NAME = "Edie";
-
-    function pad(n){ return String(n).padStart(2,"0"); }
-
-    function formatTime(date){
-      const h24 = date.getHours();
-      const ampm = h24 >= 12 ? "pm" : "am";
-      const h12 = (h24 % 12) || 12;
-      const mm = pad(date.getMinutes());
-      return { time: `${h12}:${mm}`, ampm, h24 };
+    function pad(n){
+      return String(n).padStart(2,"0");
     }
 
-    function setGreeting(h24){
-      const greeting = h24 < 12 ? `✿ Good morning ${NAME}` : `✿ Good evening ${NAME}`;
-      document.getElementById("greet").textContent = greeting;
-    }
-
-    function setDate(date){
-      const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-      const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-      document.getElementById("date").textContent =
-        `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
+    function ordinal(n){
+      if (n % 100 >= 11 && n % 100 <= 13) return n + "th";
+      switch (n % 10) {
+        case 1: return n + "st";
+        case 2: return n + "nd";
+        case 3: return n + "rd";
+        default: return n + "th";
+      }
     }
 
     function render(){
       const now = new Date();
-      const ft = formatTime(now);
-      setGreeting(ft.h24);
-      setDate(now);
-      document.getElementById("time").textContent = ft.time;
-      document.getElementById("ampm").textContent = ft.ampm;
+
+      const h24 = now.getHours();
+      const ampm = h24 >= 12 ? "pm" : "am";
+      const h12 = (h24 % 12) || 12;
+      const mm = pad(now.getMinutes());
+
+      document.getElementById("greet").textContent =
+        h24 < 12 ? "✿ Good morning" : "✿ Good evening";
+
+      const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+      document.getElementById("date").textContent =
+        `${days[now.getDay()]}, ${ordinal(now.getDate())} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+      document.getElementById("time").textContent = `${h12}:${mm}`;
+      document.getElementById("ampm").textContent = ampm;
     }
 
     render();
