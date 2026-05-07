@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KaTeX Designer for Notion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital@0;1&family=Lexend:wght@300;400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:transparent;--panel:#fff;--soft:#f4f3f1;--soft2:#eceae6;
+  --line:rgba(42,39,35,.11);--line2:rgba(42,39,35,.2);
+  --ink:#242321;--muted:#77736c;--faint:#aaa59b;
+  --acc:#4f4b45;--acc2:#6f6960;--good:#3f6f58;--bad:#9e4f4f;
+  --shadow:0 18px 48px rgba(34,32,29,.12),0 3px 12px rgba(34,32,29,.07);
+  --drawer-w:min(430px,calc(100vw - 54px));
+}
+html,body{min-height:100%;background:transparent;color:var(--ink);font-family:Lexend,sans-serif}
+body{padding:0}
+.demo-page{display:none}
+.side-widget{position:fixed;top:0;left:0;bottom:0;z-index:50;pointer-events:none}
+.side-tab{
+  position:absolute;top:16px;left:0;
+  width:40px;height:40px;border:1px solid var(--line2);border-left:0;
+  border-radius:0 11px 11px 0;background:var(--panel);color:var(--acc);
+  box-shadow:0 8px 24px rgba(34,32,29,.13);
+  display:flex;align-items:center;justify-content:center;pointer-events:auto;
+  transition:.18s ease;
+}
+.side-tab span{font:italic 23px Lora,serif;line-height:1}
+.side-tab:hover{background:var(--soft);width:44px}
+.side-widget.open .side-tab{left:var(--drawer-w);background:var(--ink);color:#fff}
+.drawer{
+  width:var(--drawer-w);height:100%;
+  background:rgba(255,255,255,.86);backdrop-filter:blur(18px);
+  border-right:1px solid var(--line);box-shadow:var(--shadow);
+  transform:translateX(-100%);transition:transform .24s cubic-bezier(.2,.8,.2,1);
+  pointer-events:auto;overflow:auto;
+}
+.side-widget.open .drawer{transform:translateX(0)}
+.app{min-height:100%;display:flex;flex-direction:column}
+.panel,.preview{background:var(--panel);overflow:hidden}
+.panel{order:2;border-top:1px solid var(--line)}
+.head{position:sticky;top:0;z-index:2;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.mark{width:32px;height:32px;border-radius:9px;background:rgba(42,39,35,.07);display:grid;place-items:center;color:var(--acc);font:italic 20px Lora,serif}
+h1{font-size:14px;font-weight:600;letter-spacing:0}
+.sub{font-size:10px;color:var(--muted);margin-top:2px;font-weight:300}
+.close-drawer{margin-left:auto;width:28px;height:28px;border:1px solid var(--line2);border-radius:8px;background:var(--soft);color:var(--muted);font-size:17px}
+.close-drawer:hover{background:var(--soft2);color:var(--ink)}
+.controls{padding:13px 14px 16px;display:flex;flex-direction:column;gap:11px}
+.field{display:flex;flex-direction:column;gap:6px}
+label,.lbl{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.section-head{height:32px;border:1px solid var(--line2);border-radius:8px;background:var(--soft);display:flex;align-items:center;gap:8px;padding:0 8px;color:var(--ink);transition:.12s}
+.section-head:hover{background:var(--soft2)}
+.section-head .lbl{flex:1;text-align:left}
+.section-chev{font-size:10px;color:var(--muted);transition:transform .14s}
+.section-body{display:flex;flex-direction:column;gap:6px}
+.collapsible.collapsed .section-body{display:none}
+.collapsible.collapsed .section-chev{transform:rotate(-90deg)}
+.field.disabled{opacity:.45}
+.field.disabled .section-head,.field.disabled .color-head{cursor:not-allowed}
+.field.disabled .section-body,.field.disabled .color-body{display:none}
+.field.disabled .section-chev,.field.disabled .color-chev{transform:rotate(-90deg)}
+textarea,input,select{width:100%;border:1px solid var(--line2);border-radius:8px;background:var(--soft);color:var(--ink);font:12px Lexend,sans-serif}
+textarea{height:58px;resize:vertical;padding:9px 10px;line-height:1.45}
+input,select{height:34px;padding:0 9px}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(42,39,35,.09)}
+.grid{display:grid;gap:4px}
+.grid.three{grid-template-columns:repeat(3,1fr)}
+.grid.four{grid-template-columns:repeat(4,1fr)}
+button{font-family:Lexend,sans-serif;cursor:pointer}
+.choice{min-height:31px;border:1px solid var(--line2);border-radius:8px;background:var(--soft);color:var(--muted);font-size:10px;transition:.12s}
+.choice:hover{background:var(--soft2);color:var(--ink)}
+.choice.active{background:rgba(42,39,35,.08);border-color:rgba(42,39,35,.28);color:var(--acc);font-weight:600}
+.row{display:grid;grid-template-columns:1fr 58px;gap:7px;align-items:center}
+.color-field{gap:5px}
+.color-head{height:32px;border:1px solid var(--line2);border-radius:8px;background:var(--soft);display:flex;align-items:center;gap:8px;padding:0 8px;color:var(--ink);transition:.12s}
+.color-head:hover{background:var(--soft2)}
+.color-head .lbl{flex:1;text-align:left}
+.color-dot{width:17px;height:17px;border-radius:5px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line2);flex-shrink:0}
+.color-chev{font-size:10px;color:var(--muted);transition:transform .14s}
+.color-body{display:flex;flex-direction:column;gap:7px}
+.color-field.collapsed .color-body{display:none}
+.color-field.collapsed .color-chev{transform:rotate(-90deg)}
+.color-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.color-tab{height:28px;border:1px solid var(--line2);border-radius:8px;background:transparent;color:var(--muted);font-size:10px;transition:.12s}
+.color-tab:hover{background:var(--soft)}
+.color-tab.active{background:rgba(42,39,35,.08);border-color:rgba(42,39,35,.28);color:var(--acc);font-weight:600}
+.color-panel{display:none}
+.color-panel.active{display:flex;flex-direction:column;gap:7px}
+.swatches{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.swatch{aspect-ratio:1;border-radius:5px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);transition:.1s}
+.swatch:hover{transform:translateY(-1px) scale(1.08)}
+.palette-list{display:flex;flex-direction:column;gap:6px;max-height:156px;overflow:auto;padding-right:2px}
+.palette-row{display:flex;flex-direction:column;gap:3px}
+.palette-name{font-size:8px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.palette-swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.palette-swatch{height:22px;border-radius:5px;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);transition:.1s}
+.palette-swatch:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(34,32,29,.12)}
+.preset-row{display:grid;grid-template-columns:1fr auto;gap:7px}
+.preset-list{display:flex;flex-direction:column;gap:5px;max-height:136px;overflow:auto}
+.preset-item{display:grid;grid-template-columns:1fr auto auto;gap:5px;align-items:center;border:1px solid var(--line2);border-radius:8px;background:var(--soft);padding:6px}
+.preset-name{font-size:10.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preset-mini{height:24px;padding:0 7px;border-radius:6px;border:1px solid var(--line2);background:var(--panel);color:var(--muted);font-size:9.5px}
+.preset-mini:hover{background:var(--soft2);color:var(--ink)}
+.preview{order:1;display:flex;flex-direction:column;position:sticky;top:57px;z-index:1;border-bottom:1px solid var(--line)}
+.preview-main{flex:1;padding:14px;display:flex;flex-direction:column;gap:10px}
+.hint{font-size:10.5px;color:var(--muted);line-height:1.5}
+.render-wrap{border:1px solid var(--line2);border-radius:10px;background:#fff;min-height:112px;display:grid;place-items:center;padding:16px;overflow:auto}
+.render-wrap.dark{background:#111}
+#rendered{max-width:100%;font-size:19px}
+.render-error{color:var(--bad);font:12px/1.5 DM Mono,monospace;white-space:pre-wrap}
+.codebox{border-radius:9px;background:#242321;color:#e8e3db;padding:10px;font:10.5px/1.65 DM Mono,monospace;min-height:58px;max-height:108px;overflow:auto;word-break:break-word;white-space:pre-wrap}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.primary,.secondary{height:36px;border-radius:8px;border:1px solid transparent;font-size:11px;font-weight:600}
+.primary{background:var(--acc);color:#fff;box-shadow:0 4px 14px rgba(34,32,29,.16)}
+.primary:hover{background:var(--acc2)}
+.secondary{background:var(--soft);color:var(--ink);border-color:var(--line2)}
+.secondary:hover{background:var(--soft2)}
+.mini-row{display:flex;gap:7px;align-items:center;justify-content:space-between}
+.toggle{display:flex;gap:6px}
+.small{height:25px;padding:0 8px;border-radius:7px;border:1px solid var(--line2);background:var(--soft);color:var(--muted);font-size:10px}
+.small.active{background:var(--acc);border-color:var(--acc);color:#fff}
+.status{min-height:15px;text-align:center;color:var(--good);font-size:11px;font-weight:500}
+@media(max-width:800px){
+  body{padding:0}
+  .drawer{width:var(--drawer-w)}
+  .panel{border-bottom:1px solid var(--line)}
+  .preview{min-height:0}
+}
+</style>
+</head>
+<body>
+<main class="demo-page">
+  <div class="demo-card">
+    <h1>Notion KaTeX Designer</h1>
+    <p>Open the side tab to design a formula, preview it with real KaTeX, then copy the Notion-ready equation.</p>
+  </div>
+</main>
+
+<aside class="side-widget" id="sideWidget">
+  <button class="side-tab" id="sideTab" type="button" aria-label="Open KaTeX designer" aria-expanded="false" aria-controls="designerDrawer"><span>∂</span></button>
+  <div class="drawer" id="designerDrawer">
+    <div class="app">
+      <div class="head">
+        <div class="mark">∂</div>
+        <div>
+          <h1>KaTeX Designer</h1>
+          <div class="sub">Create Notion equation styling</div>
+        </div>
+        <button class="close-drawer" id="closeDrawer" type="button" aria-label="Close designer">×</button>
+      </div>
+
+      <section class="panel">
+
+    <div class="controls">
+      <div class="field collapsible collapsed">
+        <button type="button" class="section-head" aria-expanded="false">
+          <span class="lbl">Text</span>
+          <span class="section-chev">▾</span>
+        </button>
+        <div class="section-body">
+          <textarea id="textInput" aria-label="Text">text here</textarea>
+        </div>
+      </div>
+
+      <div class="field collapsible collapsed">
+        <button type="button" class="section-head" aria-expanded="false">
+          <span class="lbl">Wrapper</span>
+          <span class="section-chev">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="grid three" id="wrapGrid">
+            <button class="choice active" data-wrap="none">None</button>
+            <button class="choice" data-wrap="colorbox">Colorbox</button>
+            <button class="choice" data-wrap="fcolorbox">Border</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field collapsible collapsed">
+        <button type="button" class="section-head" aria-expanded="false">
+          <span class="lbl">Style</span>
+          <span class="section-chev">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="grid four" id="styleGrid">
+            <button class="choice active" data-style="sansBold">Sans Bold</button>
+            <button class="choice" data-style="sansText">Sans</button>
+            <button class="choice" data-style="mathscr">Script</button>
+            <button class="choice" data-style="textit">Italic</button>
+            <button class="choice" data-style="textbf">Bold</button>
+            <button class="choice" data-style="text">Normal</button>
+            <button class="choice" data-style="underline">Under</button>
+            <button class="choice" data-style="overline">Over</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field color-field collapsed" data-color-section="text">
+        <button type="button" class="color-head" aria-expanded="false">
+          <span class="lbl">Text colour</span>
+          <span class="color-dot" id="textColorDot"></span>
+          <span class="color-chev">▾</span>
+        </button>
+        <div class="color-body">
+        <div class="color-tabs" id="textColorTabs" data-color-target="text">
+          <button type="button" class="color-tab active" data-color-tab="picker">Picker</button>
+          <button type="button" class="color-tab" data-color-tab="palettes">Palettes</button>
+          <button type="button" class="color-tab" data-color-tab="all">All</button>
+        </div>
+        <div class="color-panel active" id="colorPanel-picker">
+          <div class="row">
+            <input id="textColor" type="text" value="#242321" maxlength="7">
+            <input id="textColorNative" type="color" value="#242321" aria-label="Text colour picker">
+          </div>
+        </div>
+        <div class="color-panel" id="colorPanel-palettes">
+          <div class="palette-list" id="textPaletteList"></div>
+        </div>
+        <div class="color-panel" id="colorPanel-all">
+          <div class="swatches" id="textSwatches"></div>
+        </div>
+        </div>
+      </div>
+
+      <div class="field color-field collapsed" data-color-section="bg">
+        <button type="button" class="color-head" aria-expanded="false">
+          <span class="lbl">Background colour</span>
+          <span class="color-dot" id="bgColorDot"></span>
+          <span class="color-chev">▾</span>
+        </button>
+        <div class="color-body">
+        <div class="color-tabs" id="bgColorTabs" data-color-target="bg">
+          <button type="button" class="color-tab active" data-color-tab="picker">Picker</button>
+          <button type="button" class="color-tab" data-color-tab="palettes">Palettes</button>
+          <button type="button" class="color-tab" data-color-tab="all">All</button>
+        </div>
+        <div class="color-panel active" id="bgColorPanel-picker">
+          <div class="row">
+            <input id="bgColor" type="text" value="#EDEBE7" maxlength="7">
+            <input id="bgColorNative" type="color" value="#EDEBE7" aria-label="Background colour picker">
+          </div>
+        </div>
+        <div class="color-panel" id="bgColorPanel-palettes">
+          <div class="palette-list" id="bgPaletteList"></div>
+        </div>
+        <div class="color-panel" id="bgColorPanel-all">
+          <div class="swatches" id="bgSwatches"></div>
+        </div>
+        </div>
+      </div>
+
+      <div class="field color-field collapsed" data-color-section="border">
+        <button type="button" class="color-head" aria-expanded="false">
+          <span class="lbl">Border colour</span>
+          <span class="color-dot" id="borderColorDot"></span>
+          <span class="color-chev">▾</span>
+        </button>
+        <div class="color-body">
+        <div class="color-tabs" id="borderColorTabs" data-color-target="border">
+          <button type="button" class="color-tab active" data-color-tab="picker">Picker</button>
+          <button type="button" class="color-tab" data-color-tab="palettes">Palettes</button>
+          <button type="button" class="color-tab" data-color-tab="all">All</button>
+        </div>
+        <div class="color-panel active" id="borderColorPanel-picker">
+          <div class="row">
+            <input id="borderColor" type="text" value="#6F6960" maxlength="7">
+            <input id="borderColorNative" type="color" value="#6F6960" aria-label="Border colour picker">
+          </div>
+        </div>
+        <div class="color-panel" id="borderColorPanel-palettes">
+          <div class="palette-list" id="borderPaletteList"></div>
+        </div>
+        <div class="color-panel" id="borderColorPanel-all">
+          <div class="swatches" id="borderSwatches"></div>
+        </div>
+        </div>
+      </div>
+
+      <div class="field collapsible collapsed">
+        <button type="button" class="section-head" aria-expanded="false">
+          <span class="lbl">Size</span>
+          <span class="section-chev">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="grid four" id="sizeGrid">
+            <button class="choice active" data-size="">Normal</button>
+            <button class="choice" data-size="small">Small</button>
+            <button class="choice" data-size="large">Large</button>
+            <button class="choice" data-size="huge">Huge</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field collapsible collapsed">
+        <button type="button" class="section-head" aria-expanded="false">
+          <span class="lbl">Custom presets</span>
+          <span class="section-chev">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="preset-row">
+            <input id="presetName" type="text" placeholder="Preset name">
+            <button type="button" class="preset-mini" id="savePresetBtn">Save</button>
+          </div>
+          <div class="preset-list" id="presetList"></div>
+        </div>
+      </div>
+    </div>
+      </section>
+
+      <section class="preview">
+    <div class="preview-main">
+      <div class="mini-row">
+        <div>
+          <h1>Preview</h1>
+        </div>
+        <div class="toggle">
+          <button class="small active" data-preview-bg="light">Light</button>
+          <button class="small" data-preview-bg="dark">Dark</button>
+        </div>
+      </div>
+
+      <div class="render-wrap" id="renderWrap">
+        <div id="rendered"></div>
+      </div>
+
+      <div>
+        <div class="mini-row" style="margin-bottom:7px">
+          <span class="lbl">Formula</span>
+          <span class="hint" id="modeHint">Notion copy excludes $$</span>
+        </div>
+        <div class="codebox" id="codeOut"></div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="copyNotion">Copy for Notion</button>
+        <button class="secondary" id="copyWrapped">Copy with $$</button>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+
+      </section>
+    </div>
+  </div>
+</aside>
+
+<script>
+const COLOR_PALETTES=[
+  {name:"Graphite",colors:["#111111","#242321","#3A3834","#4F4B45","#6F6960","#AAA59B"]},
+  {name:"Paper",colors:["#5B554D","#8A8378","#C9C3B8","#EDEBE7","#F7F5F1","#FFFFFF"]},
+  {name:"Sage",colors:["#304038","#5D665E","#7B8A7D","#A8B2A6","#DCE1D8","#F4F6F1"]},
+  {name:"Blue Grey",colors:["#344454","#596775","#7B8794","#AAB4BE","#E3E7EA","#F6F8F8"]},
+  {name:"Cornflower",colors:["#533A33","#849DBB","#648EC0","#B0D2EC","#D8E8F5","#B5ACA3"]},
+  {name:"Study Blues",colors:["#2F5F93","#648EC0","#849DBB","#A8C4DA","#B0D2EC","#EAF2F8"]},
+  {name:"Clay",colors:["#5A423C","#6F5B55","#937B72","#C6B0A6","#E7D8D0","#F7EFEA"]},
+  {name:"Dusty Rose",colors:["#836871","#917F88","#A37E84","#CDADAB","#EBD7CE","#F6EFEA"]},
+  {name:"Rose Smoke",colors:["#6F555E","#836871","#A37E84","#C59FA2","#CDADAB","#EBD7CE"]},
+  {name:"Palm Rose",colors:["#A16879","#BB737E","#DEADA9","#C5BA9A","#E2DAAC","#F4EED0"]},
+  {name:"Soft Blush",colors:["#7E4D58","#A16879","#C9858D","#DEADA9","#EDD1CE","#FAF0EC"]},
+  {name:"Ivory Bistro",colors:["#4F5127","#837534","#DB918F","#F8EEC2","#F9EAD2","#FFF6E7"]},
+  {name:"Olive Peach",colors:["#34371E","#4F5127","#837534","#B3A65E","#DB918F","#F1C2B8"]},
+  {name:"Cavern Lilac",colors:["#544556","#624D85","#AAA1C6","#D8C7AD","#976F55","#F1E5D3"]},
+  {name:"Soft Violet",colors:["#3F3444","#544556","#624D85","#8F81AF","#AAA1C6","#E5DEF2"]},
+  {name:"Valerie Bloom",colors:["#A4565C","#E7B4B9","#FDE5E8","#E8F0A2","#999D4F","#F6F8C8"]},
+  {name:"Lilac Rifle",colors:["#3E5220","#6B5370","#9077A0","#D7CCDB","#E6CBD6","#F4EDF4"]},
+  {name:"Bloom Greens",colors:["#314319","#3E5220","#777D3E","#999D4F","#E8F0A2","#F6F8C8"]},
+  {name:"Ochre",colors:["#5F4A23","#8A744F","#BCA46F","#D8C79D","#EEE3C4","#FAF6EA"]},
+];
+const PALETTE=[...new Set(COLOR_PALETTES.flatMap(p=>p.colors))];
+const PRESET_KEY="katex-designer-presets";
+let state={style:"sansBold",wrap:"none",size:""};
+
+const $=id=>document.getElementById(id);
+const hexOk=v=>/^#[0-9a-fA-F]{6}$/.test(v);
+
+function setDrawer(open){
+  $("sideWidget").classList.toggle("open",open);
+  $("sideTab").setAttribute("aria-expanded",String(open));
+}
+
+function normalizeHex(value,fallback){
+  let v=value.trim();
+  if(!v.startsWith("#")) v="#"+v;
+  return hexOk(v) ? v.toUpperCase() : fallback;
+}
+
+function latexEscape(text){
+  return text
+    .replace(/\\/g,"\\textbackslash{}")
+    .replace(/([{}$&#_%])/g,"\\$1")
+    .replace(/\^/g,"\\textasciicircum{}")
+    .replace(/~/g,"\\textasciitilde{}");
+}
+
+function contentForStyle(raw){
+  const safe=latexEscape(raw || "text here");
+  if(state.style==="mathscr") return safe.replace(/[^A-Za-z]/g,"") || "texthere";
+  return safe.replace(/ /g,"~");
+}
+
+function buildInner(style,content){
+  if(style==="sansBold") return `\\textsf{\\textbf{${content}}}`;
+  if(style==="sansText") return `\\textsf{\\text{${content}}}`;
+  if(style==="mathscr") return `\\mathscr{${content}}`;
+  if(style==="underline"||style==="overline") return `\\${style}{\\text{${content}}}`;
+  return `\\${style}{${content}}`;
+}
+
+function buildFormula(){
+  const tc=normalizeHex($("textColor").value,"#242321");
+  const bc=normalizeHex($("bgColor").value,"#EDEBE7");
+  const rc=normalizeHex($("borderColor").value,"#6F6960");
+  const raw=$("textInput").value;
+  const content=contentForStyle(raw);
+  const style=state.style;
+  let inner=buildInner(style,content);
+
+  if(state.size) inner=`\\${state.size}{${inner}}`;
+  inner=`{\\color{${tc}}${inner}}`;
+
+  if(state.wrap==="colorbox") return `\\colorbox{${bc}}{${inner}}`;
+  if(state.wrap==="fcolorbox") return `\\fcolorbox{${rc}}{${bc}}{${inner}}`;
+  return inner;
+}
+
+function renderFormula(){
+  const formula=buildFormula();
+  $("codeOut").textContent=formula;
+  updateColorDots();
+  updateDependentControls();
+  const target=$("rendered");
+  target.className="";
+
+  if(!window.katex){
+    target.className="render-error";
+    target.textContent="KaTeX is still loading. If this stays here, check your internet connection because the preview uses the KaTeX CDN.";
+    return;
+  }
+
+  try{
+    katex.render(formula,target,{throwOnError:true,displayMode:false,strict:"ignore",trust:true});
+  }catch(err){
+    target.className="render-error";
+    target.textContent=err.message;
+  }
+}
+
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(_){
+    const ta=document.createElement("textarea");
+    ta.value=text;
+    ta.style.position="fixed";
+    ta.style.opacity="0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
+  $("status").textContent="Copied";
+  setTimeout(()=>$("status").textContent="",1400);
+}
+
+function bindChoice(group,prop){
+  document.querySelectorAll(`#${group} .choice`).forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(`#${group} .choice`).forEach(x=>x.classList.remove("active"));
+      btn.classList.add("active");
+      state[prop]=btn.dataset[prop];
+      renderFormula();
+      collapseSection(btn.closest(".collapsible"));
+    });
+  });
+}
+
+function bindColor(textId,nativeId){
+  const text=$(textId), native=$(nativeId);
+  const syncFromText=()=>{
+    const v=normalizeHex(text.value,native.value);
+    text.value=v;
+    native.value=v;
+    renderFormula();
+  };
+  text.addEventListener("change",syncFromText);
+  text.addEventListener("input",()=>{ if(hexOk(normalizeHex(text.value,native.value))) syncFromText(); });
+  native.addEventListener("input",()=>{ text.value=native.value.toUpperCase(); renderFormula(); });
+}
+
+const COLOR_TARGETS={
+  text:{input:"textColor",native:"textColorNative",tabs:"textColorTabs",panelPrefix:"colorPanel",paletteList:"textPaletteList",swatches:"textSwatches",dot:"textColorDot"},
+  bg:{input:"bgColor",native:"bgColorNative",tabs:"bgColorTabs",panelPrefix:"bgColorPanel",paletteList:"bgPaletteList",swatches:"bgSwatches",dot:"bgColorDot"},
+  border:{input:"borderColor",native:"borderColorNative",tabs:"borderColorTabs",panelPrefix:"borderColorPanel",paletteList:"borderPaletteList",swatches:"borderSwatches",dot:"borderColorDot"},
+};
+
+function updateColorDots(){
+  Object.values(COLOR_TARGETS).forEach(cfg=>{
+    $(cfg.dot).style.background=normalizeHex($(cfg.input).value,$(cfg.native).value);
+  });
+}
+
+function setColor(target,col){
+  const cfg=COLOR_TARGETS[target];
+  $(cfg.input).value=col;
+  $(cfg.native).value=col;
+  renderFormula();
+  collapseSection($(cfg.input).closest(".color-field"));
+}
+
+function buildPaletteRows(target){
+  const cfg=COLOR_TARGETS[target];
+  const list=$(cfg.paletteList);
+  COLOR_PALETTES.forEach(({name,colors})=>{
+    const row=document.createElement("div");
+    row.className="palette-row";
+    const label=document.createElement("div");
+    label.className="palette-name";
+    label.textContent=name;
+    const swatches=document.createElement("div");
+    swatches.className="palette-swatches";
+    colors.forEach(col=>{
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="palette-swatch";
+      b.style.background=col;
+      b.title=col;
+      b.addEventListener("click",()=>setColor(target,col));
+      swatches.appendChild(b);
+    });
+    row.append(label,swatches);
+    list.appendChild(row);
+  });
+}
+
+function buildAllSwatches(target){
+  const cfg=COLOR_TARGETS[target];
+  PALETTE.forEach(col=>{
+    const b=document.createElement("button");
+    b.type="button";
+    b.className="swatch";
+    b.style.background=col;
+    b.title=col;
+    b.addEventListener("click",()=>setColor(target,col));
+    $(cfg.swatches).appendChild(b);
+  });
+}
+
+function bindColorTabs(target){
+  const cfg=COLOR_TARGETS[target];
+  document.querySelectorAll(`#${cfg.tabs} .color-tab`).forEach(tab=>{
+    tab.addEventListener("click",()=>{
+      document.querySelectorAll(`#${cfg.tabs} .color-tab`).forEach(x=>x.classList.remove("active"));
+      ["picker","palettes","all"].forEach(name=>$( `${cfg.panelPrefix}-${name}` ).classList.remove("active"));
+      tab.classList.add("active");
+      $(`${cfg.panelPrefix}-${tab.dataset.colorTab}`).classList.add("active");
+    });
+  });
+}
+
+function bindColorCollapse(){
+  document.querySelectorAll(".color-field").forEach(section=>{
+    const head=section.querySelector(".color-head");
+    head.addEventListener("click",()=>{
+      if(section.classList.contains("disabled"))return;
+      const collapsed=section.classList.toggle("collapsed");
+      head.setAttribute("aria-expanded",String(!collapsed));
+    });
+  });
+}
+
+function collapseSection(section){
+  if(!section)return;
+  section.classList.add("collapsed");
+  const head=section.querySelector(".section-head,.color-head");
+  if(head)head.setAttribute("aria-expanded","false");
+}
+
+function bindCollapsibles(){
+  document.querySelectorAll(".collapsible").forEach(section=>{
+    const head=section.querySelector(".section-head");
+    head.addEventListener("click",()=>{
+      if(section.classList.contains("disabled"))return;
+      const collapsed=section.classList.toggle("collapsed");
+      head.setAttribute("aria-expanded",String(!collapsed));
+    });
+  });
+}
+
+function updateDependentControls(){
+  setFieldDisabled("bg",state.wrap==="none");
+  setFieldDisabled("border",state.wrap!=="fcolorbox");
+}
+
+function setFieldDisabled(target,disabled){
+  const section=document.querySelector(`[data-color-section="${target}"]`);
+  if(!section)return;
+  section.classList.toggle("disabled",disabled);
+  if(disabled)collapseSection(section);
+  section.querySelectorAll("input,button").forEach(el=>{
+    if(el.classList.contains("color-head")){
+      el.setAttribute("aria-disabled",String(disabled));
+    }else{
+      el.disabled=disabled;
+    }
+  });
+}
+
+function currentDesign(){
+  return {
+    text:$("textInput").value,
+    wrap:state.wrap,
+    style:state.style,
+    size:state.size,
+    textColor:$("textColor").value,
+    bgColor:$("bgColor").value,
+    borderColor:$("borderColor").value,
+  };
+}
+
+function applyDesign(design){
+  $("textInput").value=design.text || "text here";
+  state.wrap=design.wrap || "none";
+  state.style=design.style || "sansBold";
+  state.size=design.size || "";
+  setChoice("wrapGrid","wrap",state.wrap);
+  setChoice("styleGrid","style",state.style);
+  setChoice("sizeGrid","size",state.size);
+  setColorFields("text",design.textColor || "#242321");
+  setColorFields("bg",design.bgColor || "#EDEBE7");
+  setColorFields("border",design.borderColor || "#6F6960");
+  renderFormula();
+}
+
+function setChoice(group,prop,value){
+  document.querySelectorAll(`#${group} .choice`).forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset[prop]===value);
+  });
+}
+
+function setColorFields(target,col){
+  const cfg=COLOR_TARGETS[target];
+  $(cfg.input).value=col;
+  $(cfg.native).value=col;
+}
+
+function readPresets(){
+  try{return JSON.parse(localStorage.getItem(PRESET_KEY)) || [];}
+  catch(_){return [];}
+}
+
+function writePresets(presets){
+  localStorage.setItem(PRESET_KEY,JSON.stringify(presets));
+}
+
+function savePreset(){
+  const name=($("presetName").value || $("textInput").value || "Untitled").trim();
+  const presets=readPresets();
+  const preset={id:String(Date.now()),name,design:currentDesign()};
+  writePresets([preset,...presets].slice(0,24));
+  $("presetName").value="";
+  renderPresets();
+  collapseSection($("savePresetBtn").closest(".collapsible"));
+}
+
+function renderPresets(){
+  const list=$("presetList");
+  list.textContent="";
+  const presets=readPresets();
+  if(!presets.length){
+    const empty=document.createElement("div");
+    empty.className="hint";
+    empty.textContent="No saved presets yet.";
+    list.appendChild(empty);
+    return;
+  }
+  presets.forEach(preset=>{
+    const row=document.createElement("div");
+    row.className="preset-item";
+    const name=document.createElement("div");
+    name.className="preset-name";
+    name.textContent=preset.name;
+    const load=document.createElement("button");
+    load.type="button";
+    load.className="preset-mini";
+    load.textContent="Load";
+    load.addEventListener("click",()=>applyDesign(preset.design));
+    const del=document.createElement("button");
+    del.type="button";
+    del.className="preset-mini";
+    del.textContent="Del";
+    del.addEventListener("click",()=>{
+      writePresets(readPresets().filter(x=>x.id!==preset.id));
+      renderPresets();
+    });
+    row.append(name,load,del);
+    list.appendChild(row);
+  });
+}
+
+Object.keys(COLOR_TARGETS).forEach(target=>{
+  buildPaletteRows(target);
+  buildAllSwatches(target);
+  bindColorTabs(target);
+});
+bindColorCollapse();
+bindCollapsibles();
+bindChoice("wrapGrid","wrap");
+bindChoice("styleGrid","style");
+bindChoice("sizeGrid","size");
+bindColor("textColor","textColorNative");
+bindColor("bgColor","bgColorNative");
+bindColor("borderColor","borderColorNative");
+$("textInput").addEventListener("input",renderFormula);
+$("savePresetBtn").addEventListener("click",savePreset);
+$("copyNotion").addEventListener("click",()=>copyText(buildFormula()));
+$("copyWrapped").addEventListener("click",()=>copyText(`$$${buildFormula()}$$`));
+$("sideTab").addEventListener("click",()=>setDrawer(!$("sideWidget").classList.contains("open")));
+$("closeDrawer").addEventListener("click",()=>setDrawer(false));
+document.addEventListener("keydown",event=>{
+  if(event.key==="Escape") setDrawer(false);
+});
+
+document.querySelectorAll("[data-preview-bg]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll("[data-preview-bg]").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    $("renderWrap").classList.toggle("dark",btn.dataset.previewBg==="dark");
+  });
+});
+
+window.addEventListener("load",renderFormula);
+renderPresets();
+renderFormula();
+</script>
+</body>
+</html>
