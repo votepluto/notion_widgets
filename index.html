@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>do not forget</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page-bg: transparent;
+      --note-opacity: 0.78;
+      --note-rgb: 244, 195, 205;
+      --note-bg: rgba(var(--note-rgb), var(--note-opacity));
+      --note-top: rgba(255, 246, 247, 0.44);
+      --note-edge: rgba(129, 74, 85, 0.16);
+      --ink: #4b363b;
+      --muted: rgba(75, 54, 59, 0.58);
+      --shadow: rgba(91, 49, 59, 0.18);
+      --accent: #9f5e6a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: grid;
+      place-items: start center;
+      padding: 10px;
+      background: var(--page-bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.4;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .widget {
+      width: min(100%, var(--widget-width, 360px));
+    }
+
+    .note {
+      position: relative;
+      min-height: var(--note-height, 360px);
+      overflow: hidden;
+      border: 1px solid var(--note-edge);
+      border-radius: 13px;
+      background:
+        linear-gradient(180deg, var(--note-top), transparent 92px),
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.22), transparent 26%),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.12), transparent 54%),
+        var(--note-bg);
+      box-shadow:
+        0 18px 42px var(--shadow),
+        0 2px 8px rgba(91, 49, 59, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.34);
+      backdrop-filter: blur(12px) saturate(118%);
+      font-family: var(--note-font, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif);
+    }
+
+    .note::before {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      opacity: 0.26;
+      background-image:
+        repeating-radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.3) 0 0.5px, transparent 0.9px 2.5px),
+        repeating-linear-gradient(92deg, rgba(92, 50, 58, 0.045) 0 1px, transparent 1px 9px);
+      mix-blend-mode: soft-light;
+    }
+
+    .note::after {
+      position: absolute;
+      right: 18px;
+      bottom: 12px;
+      left: 18px;
+      height: 14px;
+      pointer-events: none;
+      content: "";
+      border-radius: 999px;
+      background: rgba(70, 38, 46, 0.08);
+      filter: blur(11px);
+    }
+
+    .note.is-collapsed {
+      min-height: 56px;
+      overflow: visible;
+    }
+
+    .note.is-collapsed .header,
+    .note.is-collapsed .menu-area,
+    .note.is-collapsed .menu {
+      overflow: visible;
+    }
+
+    .note.is-collapsed .header {
+      z-index: 30;
+    }
+
+    .note.is-collapsed .icon-btn {
+      background: rgba(255, 255, 255, 0.18);
+      color: rgba(68, 47, 52, 0.72);
+    }
+
+    .note.is-collapsed .note-content,
+    .note.is-collapsed .resize-handle,
+    body.no-resize .resize-handle {
+      display: none;
+    }
+
+    .header {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      height: 45px;
+      padding: 0 14px 0 17px;
+      border-bottom: 1px solid rgba(112, 67, 76, 0.11);
+      user-select: none;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      min-height: 32px;
+      overflow: hidden;
+      flex: 1;
+      color: rgba(68, 47, 52, 0.78);
+      cursor: text;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: lowercase;
+      white-space: nowrap;
+    }
+
+    .title-text {
+      display: inline-flex;
+      align-items: center;
+      min-width: min(150px, 100%);
+      min-height: 26px;
+      max-width: 100%;
+      overflow: hidden;
+      padding: 0 4px;
+      margin-left: -4px;
+      border-radius: 4px;
+      cursor: text;
+      outline: none;
+      text-overflow: ellipsis;
+      user-select: text;
+    }
+
+    .title-text:focus {
+      background: rgba(255, 255, 255, 0.18);
+      text-overflow: clip;
+    }
+
+    .title-text:empty::before {
+      content: "do not forget";
+      color: rgba(68, 47, 52, 0.34);
+    }
+
+    .count {
+      display: none;
+      margin-left: 6px;
+      color: rgba(68, 47, 52, 0.4);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .menu-area {
+      position: relative;
+      z-index: 12;
+      flex: 0 0 auto;
+      user-select: none;
+    }
+
+    .icon-btn {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 50%;
+      background: transparent;
+      color: rgba(68, 47, 52, 0.54);
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .icon-btn:hover,
+    .icon-btn:focus-visible {
+      background: rgba(255, 255, 255, 0.28);
+      color: rgba(68, 47, 52, 0.82);
+      outline: none;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.94);
+    }
+
+    .menu {
+      position: absolute;
+      top: 32px;
+      right: 0;
+      z-index: 40;
+      display: none;
+      width: 164px;
+      padding: 7px;
+      border: 1px solid rgba(112, 67, 76, 0.12);
+      border-radius: 12px;
+      background: rgba(255, 250, 249, 0.88);
+      box-shadow: 0 18px 34px rgba(72, 42, 49, 0.16);
+      backdrop-filter: blur(18px);
+      user-select: none;
+    }
+
+    .menu.is-open {
+      display: block;
+    }
+
+    .menu button {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 30px;
+      gap: 8px;
+      padding: 0 9px;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(68, 47, 52, 0.78);
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .menu button:hover,
+    .menu button:focus-visible {
+      background: rgba(176, 114, 126, 0.12);
+      outline: none;
+    }
+
+    .menu-control {
+      padding: 5px 9px 7px;
+      color: rgba(68, 47, 52, 0.72);
+      font-size: 12px;
+    }
+
+    .menu-control label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .menu-control input[type="range"] {
+      display: block;
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .format-bubble {
+      position: fixed;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 6px;
+      border: 1px solid rgba(112, 67, 76, 0.18);
+      border-radius: 14px;
+      background: rgba(255, 252, 251, 0.96);
+      box-shadow:
+        0 18px 38px rgba(72, 42, 49, 0.22),
+        0 2px 8px rgba(72, 42, 49, 0.1);
+      backdrop-filter: blur(22px) saturate(130%);
+      user-select: none;
+    }
+
+    .format-bubble::after {
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      width: 11px;
+      height: 11px;
+      content: "";
+      border-right: 1px solid rgba(112, 67, 76, 0.16);
+      border-bottom: 1px solid rgba(112, 67, 76, 0.16);
+      background: rgba(255, 252, 251, 0.96);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .format-bubble.is-open {
+      display: flex;
+    }
+
+    .format-bubble button {
+      display: grid;
+      min-width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(68, 47, 52, 0.78);
+      font-size: 12px;
+      font-weight: 500;
+      position: relative;
+      z-index: 1;
+    }
+
+    .format-bubble button:hover,
+    .format-bubble button:focus-visible {
+      background: rgba(176, 114, 126, 0.12);
+      outline: none;
+    }
+
+    .format-bubble .highlight-dot {
+      min-width: 22px;
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(68, 47, 52, 0.13);
+      border-radius: 50%;
+      background: var(--dot);
+    }
+
+    .swatch {
+      width: 11px;
+      height: 11px;
+      flex: 0 0 auto;
+      border: 1px solid rgba(89, 54, 61, 0.16);
+      border-radius: 50%;
+      background: var(--swatch);
+    }
+
+    .divider {
+      height: 1px;
+      margin: 6px 4px;
+      background: rgba(112, 67, 76, 0.1);
+    }
+
+    .note-content {
+      position: relative;
+      z-index: 1;
+      padding: 12px 15px 58px;
+    }
+
+    .note-body {
+      min-height: 228px;
+      min-width: 0;
+      padding: 4px 3px 2px;
+      border-radius: 4px;
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 1.55;
+      letter-spacing: 0;
+      outline: none;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      user-select: text;
+    }
+
+    .note-body:empty::before {
+      content: "tiny things here...";
+      color: rgba(68, 47, 52, 0.32);
+    }
+
+    .note-body div {
+      min-height: 1.55em;
+    }
+
+    .note-body div[data-checked="true"] {
+      opacity: 0.52;
+      text-decoration: line-through;
+      text-decoration-thickness: 1px;
+      text-decoration-color: rgba(68, 47, 52, 0.42);
+    }
+
+    .note-body img {
+      display: block;
+      max-width: 100%;
+      max-height: 190px;
+      margin: 10px 0;
+      border-radius: 9px;
+      object-fit: cover;
+    }
+
+    .note-body mark {
+      border-radius: 4px;
+      background: rgba(255, 242, 149, 0.62);
+      color: inherit;
+      padding: 0 2px;
+    }
+
+    .note-body mark[data-highlight="rose"] {
+      background: rgba(255, 190, 205, 0.66);
+    }
+
+    .note-body mark[data-highlight="butter"] {
+      background: rgba(255, 242, 149, 0.68);
+    }
+
+    .note-body mark[data-highlight="sage"] {
+      background: rgba(190, 226, 190, 0.66);
+    }
+
+    .note-body mark[data-highlight="mist"] {
+      background: rgba(190, 222, 238, 0.66);
+    }
+
+    .note-body small {
+      font-size: 0.86em;
+    }
+
+    .note-body big {
+      font-size: 1.16em;
+    }
+
+    .note-body input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      margin: 0 7px 0 0;
+      border: 1px solid rgba(76, 48, 54, 0.28);
+      border-radius: 3px;
+      vertical-align: -1px;
+      cursor: pointer;
+    }
+
+    .note-body input[type="checkbox"]:checked {
+      background: rgba(76, 48, 54, 0.28);
+    }
+
+    .resize-handle {
+      position: absolute;
+      right: 5px;
+      bottom: 5px;
+      z-index: 3;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px 0 8px 0;
+      cursor: nwse-resize;
+      opacity: 0.34;
+      user-select: none;
+      touch-action: none;
+      transition: opacity 160ms ease, background 160ms ease;
+    }
+
+    .resize-handle::before {
+      position: absolute;
+      right: 5px;
+      bottom: 5px;
+      width: 10px;
+      height: 10px;
+      content: "";
+      background:
+        linear-gradient(135deg, transparent 0 42%, rgba(68, 47, 52, 0.32) 43% 50%, transparent 51% 100%),
+        linear-gradient(135deg, transparent 0 63%, rgba(68, 47, 52, 0.2) 64% 70%, transparent 71% 100%);
+    }
+
+    .resize-handle:hover,
+    .resize-handle:focus-visible,
+    .note.is-resizing .resize-handle {
+      background: rgba(255, 255, 255, 0.16);
+      opacity: 0.72;
+      outline: none;
+    }
+
+    body.is-resizing-note {
+      cursor: nwse-resize;
+      user-select: none;
+    }
+
+    .font-clean {
+      --note-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .font-serif {
+      --note-font: Georgia, "Times New Roman", serif;
+    }
+
+    .font-mono {
+      --note-font: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    .theme-butter {
+      --note-rgb: 246, 224, 150;
+      --note-bg: rgba(var(--note-rgb), var(--note-opacity));
+      --note-top: rgba(255, 251, 229, 0.5);
+      --note-edge: rgba(138, 109, 43, 0.17);
+      --ink: #4d422a;
+      --muted: rgba(77, 66, 42, 0.58);
+      --shadow: rgba(118, 91, 35, 0.18);
+      --accent: #987735;
+    }
+
+    .theme-sage {
+      --note-rgb: 194, 219, 196;
+      --note-bg: rgba(var(--note-rgb), var(--note-opacity));
+      --note-top: rgba(244, 252, 244, 0.46);
+      --note-edge: rgba(71, 105, 75, 0.16);
+      --ink: #334437;
+      --muted: rgba(51, 68, 55, 0.58);
+      --shadow: rgba(54, 91, 58, 0.17);
+      --accent: #617e63;
+    }
+
+    .theme-mist {
+      --note-rgb: 207, 219, 225;
+      --note-bg: rgba(var(--note-rgb), var(--note-opacity));
+      --note-top: rgba(249, 253, 255, 0.48);
+      --note-edge: rgba(69, 89, 101, 0.15);
+      --ink: #34414a;
+      --muted: rgba(52, 65, 74, 0.58);
+      --shadow: rgba(55, 75, 87, 0.16);
+      --accent: #647b88;
+    }
+
+    @media (max-width: 380px) {
+      body {
+        padding: 10px;
+      }
+
+      .widget {
+        width: 100%;
+      }
+
+      .note {
+        min-height: min(var(--note-height, 324px), calc(100vh - 20px));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="widget" aria-label="Do not forget reminder widget">
+    <section class="note" id="note">
+      <header class="header">
+        <div class="title" id="titleArea">
+          <span class="title-text" id="titleText" contenteditable="true" spellcheck="false" aria-label="Edit note title">do not forget</span>
+          <span class="count" id="count"></span>
+        </div>
+        <div class="menu-area">
+          <button class="icon-btn" id="menuBtn" type="button" aria-label="Open note menu" aria-expanded="false">⋯</button>
+          <div class="menu" id="menu" role="menu" aria-label="Note options">
+            <button type="button" data-theme="rose" role="menuitem"><span class="swatch" style="--swatch: #f2bbc7"></span>rose</button>
+            <button type="button" data-theme="butter" role="menuitem"><span class="swatch" style="--swatch: #f4df91"></span>butter</button>
+            <button type="button" data-theme="sage" role="menuitem"><span class="swatch" style="--swatch: #bdd9c0"></span>sage</button>
+            <button type="button" data-theme="mist" role="menuitem"><span class="swatch" style="--swatch: #cedce4"></span>mist</button>
+            <div class="divider"></div>
+            <div class="menu-control">
+              <label for="opacitySlider">opacity</label>
+              <input id="opacitySlider" type="range" min="45" max="95" step="1">
+            </div>
+            <div class="divider"></div>
+            <button type="button" data-font="clean" role="menuitem">font clean</button>
+            <button type="button" data-font="serif" role="menuitem">font serif</button>
+            <button type="button" data-font="mono" role="menuitem">font mono</button>
+            <div class="divider"></div>
+            <button type="button" data-format="strong" role="menuitem">bold</button>
+            <button type="button" data-format="mark" role="menuitem">highlight</button>
+            <button type="button" data-format="small" role="menuitem">smaller</button>
+            <button type="button" data-format="big" role="menuitem">bigger</button>
+            <div class="divider"></div>
+            <button type="button" id="checklistBtn" role="menuitem">insert checkbox</button>
+            <button type="button" id="clearImageBtn" role="menuitem">clear image</button>
+            <div class="divider"></div>
+            <button type="button" id="collapseBtn" role="menuitem">collapse</button>
+            <button type="button" id="clearBtn" role="menuitem">clear note</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="note-content">
+        <div class="note-body" id="noteBody" contenteditable="true" spellcheck="false" aria-label="Note body"></div>
+      </div>
+
+      <div class="resize-handle" id="resizeHandle" role="separator" aria-label="Resize note" tabindex="0"></div>
+    </section>
+    <div class="format-bubble" id="formatBubble" aria-label="Text formatting">
+      <button type="button" data-bubble-format="strong" aria-label="Bold selected text">B</button>
+      <button type="button" data-bubble-format="mark" aria-label="Highlight selected text">H</button>
+      <button type="button" data-bubble-format="small" aria-label="Make selected text smaller">S</button>
+      <button type="button" data-bubble-format="big" aria-label="Make selected text bigger">A</button>
+      <button class="highlight-dot" type="button" data-highlight="butter" aria-label="Butter highlight" style="--dot: rgba(255, 242, 149, 0.9)"></button>
+      <button class="highlight-dot" type="button" data-highlight="rose" aria-label="Rose highlight" style="--dot: rgba(255, 190, 205, 0.9)"></button>
+      <button class="highlight-dot" type="button" data-highlight="sage" aria-label="Sage highlight" style="--dot: rgba(190, 226, 190, 0.9)"></button>
+      <button class="highlight-dot" type="button" data-highlight="mist" aria-label="Mist highlight" style="--dot: rgba(190, 222, 238, 0.9)"></button>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const noteId = (params.get("id") || "default").replace(/[^\w-]/g, "").slice(0, 40) || "default";
+    const STORAGE_KEY = `do-not-forget-widget:${noteId}`;
+    const LEGACY_STORAGE_KEY = "do-not-forget-widget";
+    const allowResize = params.get("resize") !== "false";
+    const DEFAULT_ITEMS = [
+      { text: "call pharmacy", done: false },
+      { text: "charge laptop", done: false },
+      { text: "pack lunch", done: false },
+      { text: "send form", done: false }
+    ];
+
+    const note = document.getElementById("note");
+    const noteBody = document.getElementById("noteBody");
+    const checklistBtn = document.getElementById("checklistBtn");
+    const clearImageBtn = document.getElementById("clearImageBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const collapseBtn = document.getElementById("collapseBtn");
+    const count = document.getElementById("count");
+    const formatBubble = document.getElementById("formatBubble");
+    const menu = document.getElementById("menu");
+    const menuBtn = document.getElementById("menuBtn");
+    const opacitySlider = document.getElementById("opacitySlider");
+    const resizeHandle = document.getElementById("resizeHandle");
+    const titleArea = document.getElementById("titleArea");
+    const titleText = document.getElementById("titleText");
+
+    let state = loadState();
+    let savedBodyRange = null;
+
+    document.body.classList.toggle("no-resize", !allowResize);
+
+    function readStoredState() {
+      try {
+        const value = localStorage.getItem(STORAGE_KEY) || (noteId === "default" ? localStorage.getItem(LEGACY_STORAGE_KEY) : null);
+        return value ? JSON.parse(value) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function writeStoredState(value) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+      } catch (error) {
+        // Embedded browsers can block storage; the note still works for this session.
+      }
+    }
+
+    function loadState() {
+      const saved = readStoredState();
+      if (saved) {
+        const bodyHtml = Object.prototype.hasOwnProperty.call(saved, "bodyHtml") ? saved.bodyHtml : migrateItemsToBody(saved.items, saved.image);
+        return {
+          bodyHtml,
+          title: saved.title || "do not forget",
+          theme: saved.theme || "rose",
+          font: saved.font || "clean",
+          highlight: saved.highlight || "butter",
+          opacity: normalizeOpacity(saved.opacity),
+          collapsed: Boolean(saved.collapsed),
+          size: normalizeSize(saved.size)
+        };
+      }
+
+      return {
+        bodyHtml: migrateItemsToBody(DEFAULT_ITEMS),
+        title: "do not forget",
+        theme: "rose",
+        font: "clean",
+        highlight: "butter",
+        opacity: 0.78,
+        collapsed: false,
+        size: null
+      };
+    }
+
+    function saveState() {
+      state.bodyHtml = cleanBodyHtml(noteBody.innerHTML);
+      writeStoredState(state);
+    }
+
+    function render() {
+      note.className = [
+        "note",
+        state.theme === "rose" ? "" : `theme-${state.theme}`,
+        `font-${state.font || "clean"}`,
+        state.collapsed ? "is-collapsed" : ""
+      ].filter(Boolean).join(" ");
+      applyOpacity();
+      applySize();
+
+      if (document.activeElement !== noteBody) {
+        noteBody.innerHTML = state.bodyHtml || "";
+        syncCheckedLines();
+      }
+
+      titleText.textContent = state.title || "";
+      count.textContent = "";
+      collapseBtn.textContent = state.collapsed ? "expand" : "collapse";
+      clearImageBtn.style.display = noteBody.querySelector("img") ? "flex" : "none";
+      opacitySlider.value = Math.round((state.opacity || 0.78) * 100);
+    }
+
+    function normalizeOpacity(opacity) {
+      const value = Number(opacity);
+      if (!Number.isFinite(value)) return 0.78;
+      return clamp(value, 0.45, 0.95);
+    }
+
+    function applyOpacity() {
+      document.documentElement.style.setProperty("--note-opacity", String(normalizeOpacity(state.opacity)));
+    }
+
+    function syncCheckedLines() {
+      noteBody.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+        const line = checkbox.closest("div");
+        if (!line) return;
+        if (checkbox.checked || checkbox.hasAttribute("checked")) {
+          checkbox.checked = true;
+          checkbox.setAttribute("checked", "");
+          line.dataset.checked = "true";
+        } else {
+          delete line.dataset.checked;
+        }
+      });
+    }
+
+    function migrateItemsToBody(items, image) {
+      const lines = Array.isArray(items) ? items : DEFAULT_ITEMS;
+      const textHtml = lines
+        .map((item) => escapeHtml(item.text || ""))
+        .filter(Boolean)
+        .map((text) => `<div>${text}</div>`)
+        .join("");
+      const imageHtml = image ? `<img src="${escapeAttribute(image)}" alt="Pasted note attachment">` : "";
+      return `${textHtml}${imageHtml}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value).replace(/"/g, "&quot;");
+    }
+
+    function cleanBodyHtml(html) {
+      const template = document.createElement("template");
+      template.innerHTML = html;
+      template.content.querySelectorAll("script, style, iframe, object, embed").forEach((node) => node.remove());
+      template.content.querySelectorAll("*").forEach((node) => {
+        [...node.attributes].forEach((attribute) => {
+          if (attribute.name.startsWith("on")) node.removeAttribute(attribute.name);
+          if (attribute.name === "style" || attribute.name === "class") node.removeAttribute(attribute.name);
+        });
+      });
+      return template.innerHTML;
+    }
+
+    function normalizeSize(size) {
+      if (!size || typeof size !== "object") return null;
+      const width = Number(size.width);
+      const height = Number(size.height);
+      if (!Number.isFinite(width) || !Number.isFinite(height)) return null;
+      return {
+        width: clamp(width, 250, 520),
+        height: clamp(height, 260, 720)
+      };
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    function applySize() {
+      if (!state.size || state.collapsed) {
+        document.documentElement.style.removeProperty("--widget-width");
+        document.documentElement.style.removeProperty("--note-height");
+        return;
+      }
+
+      document.documentElement.style.setProperty("--widget-width", `${state.size.width}px`);
+      document.documentElement.style.setProperty("--note-height", `${state.size.height}px`);
+    }
+
+    function insertCheckbox() {
+      state.collapsed = false;
+      render();
+      focusEditableEnd(noteBody);
+      insertHtml('<div><input type="checkbox"> </div>');
+    }
+
+    function insertHtml(html) {
+      noteBody.focus();
+      document.execCommand("insertHTML", false, html);
+      saveState();
+      render();
+    }
+
+    function focusEditableEnd(field) {
+      field.focus();
+      const range = document.createRange();
+      range.selectNodeContents(field);
+      range.collapse(false);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    function selectionBelongsToBody(selection) {
+      if (!selection || !selection.rangeCount) return false;
+      const range = selection.getRangeAt(0);
+      return noteBody.contains(range.commonAncestorContainer);
+    }
+
+    function rememberBodySelection() {
+      const selection = window.getSelection();
+      if (!selectionBelongsToBody(selection)) {
+        hideFormatBubble();
+        return;
+      }
+      if (selection.isCollapsed) return;
+      savedBodyRange = selection.getRangeAt(0).cloneRange();
+      positionFormatBubble(savedBodyRange);
+    }
+
+    function restoreBodySelection() {
+      const selection = window.getSelection();
+      noteBody.focus();
+      selection.removeAllRanges();
+      if (savedBodyRange) {
+        selection.addRange(savedBodyRange);
+        return true;
+      }
+      focusEditableEnd(noteBody);
+      return false;
+    }
+
+    function formatSelection(tagName, options = {}) {
+      state.collapsed = false;
+      restoreBodySelection();
+
+      const selection = window.getSelection();
+      if (!selectionBelongsToBody(selection) || selection.isCollapsed) return;
+
+      const range = selection.getRangeAt(0);
+      const wrapper = document.createElement(tagName);
+      if (tagName === "mark") {
+        wrapper.dataset.highlight = options.highlight || state.highlight || "butter";
+      }
+      wrapper.appendChild(range.extractContents());
+      range.insertNode(wrapper);
+
+      selection.removeAllRanges();
+      const after = document.createRange();
+      after.selectNodeContents(wrapper);
+      after.collapse(false);
+      selection.addRange(after);
+      savedBodyRange = after.cloneRange();
+      saveState();
+      render();
+      hideFormatBubble();
+    }
+
+    function positionFormatBubble(range) {
+      const rect = range.getBoundingClientRect();
+      if (!rect.width && !rect.height) return;
+
+      formatBubble.classList.add("is-open");
+      const bubbleRect = formatBubble.getBoundingClientRect();
+      const left = clamp(rect.left + rect.width / 2 - bubbleRect.width / 2, 8, window.innerWidth - bubbleRect.width - 8);
+      const top = clamp(rect.top - bubbleRect.height - 8, 8, window.innerHeight - bubbleRect.height - 8);
+      formatBubble.style.left = `${left}px`;
+      formatBubble.style.top = `${top}px`;
+    }
+
+    function hideFormatBubble() {
+      formatBubble.classList.remove("is-open");
+    }
+
+    function toggleMenu(force) {
+      const shouldOpen = typeof force === "boolean" ? force : !menu.classList.contains("is-open");
+      menu.classList.toggle("is-open", shouldOpen);
+      menuBtn.setAttribute("aria-expanded", String(shouldOpen));
+    }
+
+    function holdControl(event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    function bindControl(control, action) {
+      function activateFromPress(event) {
+        holdControl(event);
+        if (control.dataset.pointerHandled === "true") return;
+        control.dataset.pointerHandled = "true";
+        action(event);
+        window.setTimeout(() => {
+          delete control.dataset.pointerHandled;
+        }, 350);
+      }
+
+      control.addEventListener("pointerdown", activateFromPress);
+      control.addEventListener("mousedown", activateFromPress);
+
+      control.addEventListener("click", (event) => {
+        holdControl(event);
+        if (control.dataset.pointerHandled === "true") return;
+        action(event);
+      });
+    }
+
+    function insertImageFile(file) {
+      if (!file || !file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        state.collapsed = false;
+        render();
+        focusEditableEnd(noteBody);
+        insertHtml(`<img src="${escapeAttribute(String(reader.result || ""))}" alt="Pasted note attachment">`);
+      });
+      reader.readAsDataURL(file);
+    }
+
+    function handlePasteImage(event) {
+      const items = Array.from(event.clipboardData?.items || []);
+      const imageItem = items.find((item) => item.type.startsWith("image/"));
+      if (!imageItem) return;
+      const file = imageItem.getAsFile();
+      if (!file) return;
+      event.preventDefault();
+      insertImageFile(file);
+    }
+
+    function startResize(event) {
+      if (state.collapsed || !allowResize) return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleMenu(false);
+
+      const noteRect = note.getBoundingClientRect();
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const startWidth = noteRect.width;
+      const startHeight = noteRect.height;
+      const maxWidth = Math.max(250, Math.min(620, window.innerWidth - 20));
+      const maxHeight = Math.max(260, Math.min(760, window.innerHeight - 20));
+
+      note.classList.add("is-resizing");
+      document.body.classList.add("is-resizing-note");
+
+      function resize(moveEvent) {
+        const width = clamp(startWidth + moveEvent.clientX - startX, 250, maxWidth);
+        const height = clamp(startHeight + moveEvent.clientY - startY, 260, maxHeight);
+        state.size = { width, height };
+        applySize();
+      }
+
+      function finishResize() {
+        note.classList.remove("is-resizing");
+        document.body.classList.remove("is-resizing-note");
+        saveState();
+        window.removeEventListener("pointermove", resize);
+        window.removeEventListener("pointerup", finishResize);
+        window.removeEventListener("pointercancel", finishResize);
+      }
+
+      window.addEventListener("pointermove", resize);
+      window.addEventListener("pointerup", finishResize);
+      window.addEventListener("pointercancel", finishResize);
+    }
+
+    resizeHandle.addEventListener("pointerdown", startResize);
+
+    resizeHandle.addEventListener("keydown", (event) => {
+      if (state.collapsed || !allowResize) return;
+      const steps = {
+        ArrowRight: [16, 0],
+        ArrowLeft: [-16, 0],
+        ArrowDown: [0, 16],
+        ArrowUp: [0, -16]
+      };
+      const step = steps[event.key];
+      if (!step) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = note.getBoundingClientRect();
+      state.size = {
+        width: clamp((state.size?.width || rect.width) + step[0], 250, Math.max(250, Math.min(620, window.innerWidth - 20))),
+        height: clamp((state.size?.height || rect.height) + step[1], 260, Math.max(260, Math.min(760, window.innerHeight - 20)))
+      };
+      applySize();
+      saveState();
+    });
+
+    titleText.addEventListener("input", () => {
+      state.title = titleText.innerText.replace(/\n/g, " ");
+      saveState();
+    });
+
+    titleText.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === "Escape") {
+        event.preventDefault();
+        titleText.blur();
+      }
+    });
+
+    titleText.addEventListener("blur", () => {
+      state.title = titleText.innerText.trim() || "do not forget";
+      saveState();
+      render();
+    });
+
+    titleArea.addEventListener("click", (event) => {
+      if (event.target === titleText) return;
+      event.preventDefault();
+      focusEditableEnd(titleText);
+    });
+
+    bindControl(menuBtn, () => {
+      toggleMenu();
+    });
+
+    menu.addEventListener("mousedown", holdControl);
+    opacitySlider.addEventListener("mousedown", (event) => event.stopPropagation());
+    opacitySlider.addEventListener("pointerdown", (event) => event.stopPropagation());
+    opacitySlider.addEventListener("input", () => {
+      state.opacity = normalizeOpacity(Number(opacitySlider.value) / 100);
+      applyOpacity();
+      saveState();
+    });
+    formatBubble.addEventListener("mousedown", holdControl);
+
+    document.querySelectorAll("[data-theme]").forEach((themeButton) => {
+      bindControl(themeButton, () => {
+        state.theme = themeButton.dataset.theme;
+        saveState();
+        render();
+        toggleMenu(false);
+      });
+    });
+
+    document.querySelectorAll("[data-font]").forEach((fontButton) => {
+      bindControl(fontButton, () => {
+        state.font = fontButton.dataset.font || "clean";
+        saveState();
+        render();
+        toggleMenu(false);
+      });
+    });
+
+    document.querySelectorAll("[data-format]").forEach((formatButton) => {
+      bindControl(formatButton, () => {
+        formatSelection(formatButton.dataset.format);
+        toggleMenu(false);
+      });
+    });
+
+    document.querySelectorAll("[data-bubble-format]").forEach((formatButton) => {
+      bindControl(formatButton, () => {
+        formatSelection(formatButton.dataset.bubbleFormat);
+      });
+    });
+
+    document.querySelectorAll("[data-highlight]").forEach((highlightButton) => {
+      bindControl(highlightButton, () => {
+        state.highlight = highlightButton.dataset.highlight || "butter";
+        formatSelection("mark", { highlight: state.highlight });
+      });
+    });
+
+    bindControl(checklistBtn, () => {
+      insertCheckbox();
+      toggleMenu(false);
+    });
+
+    bindControl(clearImageBtn, () => {
+      noteBody.querySelectorAll("img").forEach((image) => image.remove());
+      saveState();
+      render();
+      toggleMenu(false);
+    });
+
+    bindControl(collapseBtn, () => {
+      state.collapsed = !state.collapsed;
+      saveState();
+      render();
+      toggleMenu(false);
+    });
+
+    bindControl(clearBtn, () => {
+      state.bodyHtml = "";
+      noteBody.innerHTML = "";
+      state.collapsed = false;
+      saveState();
+      render();
+      toggleMenu(false);
+      noteBody.focus();
+    });
+
+    document.addEventListener("click", (event) => {
+      toggleMenu(false);
+      if (!noteBody.contains(event.target) && !formatBubble.contains(event.target)) {
+        hideFormatBubble();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        toggleMenu(false);
+        hideFormatBubble();
+      }
+    });
+    document.addEventListener("selectionchange", rememberBodySelection);
+    document.addEventListener("paste", handlePasteImage);
+    noteBody.addEventListener("input", saveState);
+    noteBody.addEventListener("mouseup", () => window.setTimeout(rememberBodySelection, 0));
+    noteBody.addEventListener("keyup", () => window.setTimeout(rememberBodySelection, 0));
+    noteBody.addEventListener("change", (event) => {
+      if (event.target.matches('input[type="checkbox"]')) {
+        event.target.toggleAttribute("checked", event.target.checked);
+        const line = event.target.closest("div");
+        if (line) {
+          if (event.target.checked) {
+            line.dataset.checked = "true";
+          } else {
+            delete line.dataset.checked;
+          }
+        }
+        saveState();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
