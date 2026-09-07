@@ -3,904 +3,559 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A soft, responsive mini calendar made for Notion.">
+  <meta name="theme-color" content="#eeeafe">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23eee7f7'/%3E%3Cpath d='M17 24h30v24H17z' fill='%23fff'/%3E%3Cpath d='M17 24h30v8H17z' fill='%238c73a8'/%3E%3C/svg%3E">
   <title>Mini Calendar</title>
   <style>
     :root {
       color-scheme: light;
-      --bg: #e7e7e5;
-      --card: #ffffff;
-      --ink: #111111;
-      --muted-ink: #5f5f5b;
-      --soft: #e9e9e6;
-      --line: rgba(0, 0, 0, 0.1);
-      --accent: #000000;
-      --accent-ink: #ffffff;
-      --accent-soft: #e4e4e1;
-      --shadow: rgba(0, 0, 0, 0.08);
-      --widget-max-width: 620px;
-      --embed-padding: 8px;
-      --widget-radius: 30px;
-      --cell-size: 30px;
-      --grid-row-gap: 4px;
-      --grid-column-gap: 10px;
-      --grid-side-padding: 32px;
-      --grid-bottom-padding: 22px;
-      --toolbar-top-padding: 20px;
-      --toolbar-side-padding: 32px;
-      --toolbar-bottom-padding: 12px;
-      --month-font-size: 1.54rem;
-      --year-font-size: 0.78rem;
-      --nav-size: 34px;
-      --today-height: 34px;
-      --day-font-size: 0.9rem;
-      --dot-size: 4px;
-      --dot-bottom: 3px;
+      --page: #ecebef;
+      --shell: rgba(255,255,255,.86);
+      --shell-solid: #fbfaff;
+      --ink: #48414f;
+      --muted: #8a8191;
+      --faint: #b5acba;
+      --line: rgba(68,57,78,.09);
+      --accent: #8c73a8;
+      --accent-deep: #62506f;
+      --accent-ink: #fff;
+      --accent-soft: #eee7f7;
+      --week-wash: rgba(202,187,221,.18);
+      --weekend: #8d8492;
+      --shadow: 0 26px 70px rgba(70,57,83,.14), inset 0 1px 0 rgba(255,255,255,.94);
+      --radius: 30px;
+      --cell: 36px;
+      --column-gap: 10px;
+      --row-gap: 6px;
+      --side: 28px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       width: 100%;
+      min-width: 250px;
       height: 100%;
       margin: 0;
-      background: transparent;
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", sans-serif;
-      user-select: none;
     }
 
     body {
       display: grid;
       place-items: start;
-      min-height: 100%;
-      padding: var(--embed-padding);
-    }
-
-    body.embed {
-      --embed-padding: 8px;
-      --widget-max-width: 100%;
+      padding: 8px;
+      color: var(--ink);
       background: transparent;
-      place-items: start;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      -webkit-font-smoothing: antialiased;
     }
 
     body.preview {
-      --embed-padding: 10px;
-      background: var(--bg);
       place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 8% 12%, rgba(197,210,250,.72), transparent 28rem),
+        radial-gradient(circle at 92% 85%, rgba(251,206,223,.62), transparent 30rem),
+        linear-gradient(145deg, #e9e9fb, #f8f1f8 53%, #fff3f5);
     }
 
-    body.compact {
-      --widget-max-width: 430px;
-      --cell-size: 32px;
-      --grid-row-gap: 6px;
-      --grid-column-gap: 5px;
-    }
-
-    button {
-      border: 0;
-      background: transparent;
-      color: inherit;
-      font: inherit;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
+    button, summary, input { font: inherit; }
+    button, summary { -webkit-tap-highlight-color: transparent; }
 
     .calendar {
-      width: min(100%, var(--widget-max-width));
-      min-width: 310px;
-      min-height: 278px;
-      max-width: calc(100vw - (var(--embed-padding) * 2));
-      max-height: calc(100vh - (var(--embed-padding) * 2));
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: var(--widget-radius);
-      background: var(--card);
-      box-shadow: 0 10px 24px var(--shadow);
-      resize: both;
+      container: calendar / inline-size;
+      position: relative;
+      width: min(100%, 620px);
+      min-width: 0;
+      max-width: calc(100vw - 16px);
+      overflow: visible;
+      border: 1px solid rgba(255,255,255,.82);
+      border-radius: var(--radius);
+      background: var(--shell);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px) saturate(112%);
+      transition: border-radius .18s ease, background .18s ease, box-shadow .18s ease;
     }
+
+    body.embed .calendar {
+      width: 100%;
+      max-width: none;
+      min-height: calc(100vh - 16px);
+      resize: none;
+    }
+
+    body.preview .calendar { min-height: 328px; }
 
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0,1fr) auto;
       align-items: center;
       gap: 18px;
-      padding: var(--toolbar-top-padding) var(--toolbar-side-padding) var(--toolbar-bottom-padding);
+      padding: 24px var(--side) 14px;
     }
 
     .month-button {
       min-width: 0;
+      padding: 3px 4px;
+      border: 0;
       border-radius: 12px;
-      padding: 0 2px;
+      color: inherit;
+      background: transparent;
       text-align: left;
+      cursor: pointer;
     }
 
     .month-title {
       display: block;
       overflow: hidden;
-      font-size: var(--month-font-size);
-      font-weight: 850;
-      letter-spacing: 0;
-      line-height: 1.02;
+      font-family: "Avenir Next", Avenir, "Century Gothic", sans-serif;
+      font-size: clamp(1.45rem, 5.6cqi, 2rem);
+      font-weight: 560;
+      letter-spacing: -.05em;
+      line-height: .95;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .year-label {
       display: block;
-      margin-top: 5px;
-      color: var(--muted-ink);
-      font-size: var(--year-font-size);
-      font-weight: 850;
-      letter-spacing: 0;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: .68rem;
+      font-weight: 780;
+      letter-spacing: .12em;
       line-height: 1;
     }
 
-    .icon-button {
-      display: grid;
-      width: var(--nav-size);
-      height: var(--nav-size);
+    .controls { display: flex; align-items: center; gap: 6px; }
+    .nav-controls { display: flex; align-items: center; gap: 6px; }
+
+    .icon-button, .today-button, .menu summary {
+      min-width: 36px;
+      height: 36px;
+      display: inline-grid;
       place-items: center;
-      border: 1px solid transparent;
-      border-radius: 50%;
-      background: #e8e8e4;
-      color: var(--ink);
-      font-size: 1.26rem;
-      font-weight: 900;
-      line-height: 1;
-      padding-bottom: 3px;
-      transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
-    }
-
-    .nav-controls {
-      display: grid;
-      grid-template-columns: var(--nav-size) auto var(--nav-size);
-      align-items: center;
-      gap: 7px;
-    }
-
-    .today-button {
-      height: var(--today-height);
+      border: 1px solid var(--line);
       border-radius: 999px;
-      background: #e8e8e4;
       color: var(--ink);
-      font-size: 0.7rem;
-      font-weight: 900;
-      letter-spacing: 0;
-      line-height: 1;
-      padding: 0 13px;
-      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+      background: rgba(255,255,255,.58);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
     }
 
-    .today-button.is-current-month {
-      background: #050505;
-      color: #ffffff;
+    .icon-button { padding: 0 0 2px; font-size: 1.18rem; }
+    .today-button { padding: 0 12px; color: var(--accent-deep); font-size: .68rem; font-weight: 780; }
+    .today-button.is-current-month { color: var(--accent-ink); background: var(--accent-deep); }
+
+    .icon-button:hover, .today-button:hover, .menu summary:hover, .month-button:hover { background: var(--accent-soft); }
+    .today-button.is-current-month:hover { color: var(--accent-ink); background: var(--accent); }
+    .icon-button:active, .today-button:active, .menu summary:active { transform: scale(.94); }
+
+    .menu { position: relative; }
+    .menu summary { list-style: none; font-size: 1rem; letter-spacing: .06em; padding: 0 0 7px; }
+    .menu summary::-webkit-details-marker { display: none; }
+    .menu-panel {
+      position: absolute;
+      z-index: 20;
+      top: 44px;
+      right: 0;
+      width: min(268px, calc(100vw - 32px));
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,.9);
+      border-radius: 20px;
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 20px 52px rgba(70,57,83,.2), inset 0 1px 0 white;
+      backdrop-filter: blur(22px);
     }
 
-    .icon-button:hover,
-    .month-button:hover,
-    .today-button:hover {
-      background: var(--soft);
-      color: var(--ink);
+    .menu-title { margin: 0 0 10px; font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .swatch {
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(65,55,74,.1);
+      border-radius: 50%;
+      background: var(--swatch);
+      cursor: pointer;
     }
+    .swatch[aria-pressed="true"] { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+    .menu-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 15px; color: var(--ink); font-size: .78rem; font-weight: 680; }
+    .switch { position: relative; width: 38px; height: 23px; flex: 0 0 auto; }
+    .switch input { position: absolute; opacity: 0; pointer-events: none; }
+    .switch span { position: absolute; inset: 0; border-radius: 999px; background: #ddd8df; transition: background .15s ease; }
+    .switch span::after { content: ""; position: absolute; width: 17px; height: 17px; top: 3px; left: 3px; border-radius: 50%; background: white; box-shadow: 0 2px 5px rgba(40,32,46,.18); transition: transform .15s ease; }
+    .switch input:checked + span { background: var(--accent); }
+    .switch input:checked + span::after { transform: translateX(15px); }
 
-    .today-button.is-current-month:hover {
-      background: #050505;
-      color: #ffffff;
-    }
-
-    .icon-button:active,
-    .today-button:active {
-      transform: scale(0.94);
-    }
-
-    .icon-button:focus-visible,
-    .month-button:focus-visible,
-    .today-button:focus-visible,
-    .day-button:focus-visible {
-      outline: 3px solid rgba(0, 0, 0, 0.28);
-      outline-offset: 2px;
-    }
-
-    .grid {
+    .calendar-grid {
+      position: relative;
       display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: var(--grid-row-gap) var(--grid-column-gap);
-      padding: 0 var(--grid-side-padding) var(--grid-bottom-padding);
+      grid-template-columns: repeat(7, minmax(0,1fr));
+      gap: var(--row-gap) var(--column-gap);
+      isolation: isolate;
+      padding: 0 var(--side) 16px;
     }
 
     .weekday {
+      height: 22px;
       display: grid;
-      height: 21px;
       place-items: center;
-      color: var(--ink);
-      font-size: 0.88rem;
-      font-weight: 850;
-      letter-spacing: 0;
-      line-height: 1;
+      color: var(--muted);
+      font-size: .7rem;
+      font-weight: 760;
+      letter-spacing: .04em;
     }
 
-    .day-button {
-      display: grid;
-      width: var(--cell-size);
-      min-width: 0;
-      height: var(--cell-size);
-      justify-self: center;
-      place-items: center;
-      border: 1px solid transparent;
-      border-radius: 999px;
-      color: var(--ink);
-      font-size: var(--day-font-size);
-      font-weight: 650;
-      line-height: 1;
-      position: relative;
-      transition: background 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
-    }
-
-    .day-button:hover {
-      background: transparent;
-    }
-
-    .day-button:active {
-      transform: scale(0.96);
-    }
-
-    .day-button.is-weekend:not(.is-selected):not(.is-today) {
-      color: var(--muted-ink);
-    }
-
-    .day-button.is-today:not(.is-selected) {
-      border-color: transparent;
-      background: var(--accent-soft);
-      color: var(--ink);
-      font-weight: 850;
-    }
-
-    .day-button.is-selected {
-      background: var(--accent);
-      color: var(--accent-ink);
-      font-weight: 850;
-      box-shadow: none;
-    }
-
-    .day-button.is-selected.is-today {
-      background: #111111;
-    }
-
-    .empty-cell {
-      display: block;
-      width: var(--cell-size);
-      height: var(--cell-size);
-      justify-self: center;
-    }
-
-    .event-dot {
+    .week-wash {
       position: absolute;
-      bottom: var(--dot-bottom);
-      left: 50%;
-      width: var(--dot-size);
-      height: var(--dot-size);
-      border-radius: 50%;
-      background: var(--accent);
-      transform: translateX(-50%);
-    }
-
-    .day-button.is-selected .event-dot,
-    .day-button.is-today .event-dot {
-      background: #ffffff;
-    }
-
-    .day-button.has-soft-event .event-dot {
-      background: #686864;
-    }
-
-    .day-button.has-outline-event .event-dot {
-      border: 1.5px solid var(--accent);
-      background: transparent;
-    }
-
-    .day-button.is-selected.has-outline-event .event-dot {
-      border-color: #ffffff;
-    }
-
-    .tooltip {
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      z-index: 10;
-      display: none;
-      width: max-content;
-      max-width: 210px;
-      padding: 8px 10px;
-      border-radius: 14px;
-      background: var(--accent);
-      color: #ffffff;
-      font-size: 0.68rem;
-      font-weight: 850;
-      line-height: 1.2;
-      text-align: center;
-      transform: translateX(-50%);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.16);
+      z-index: -1;
+      left: var(--side);
+      right: var(--side);
+      top: calc(22px + var(--row-gap) + (var(--week-row) * (var(--cell) + var(--row-gap))));
+      height: var(--cell);
+      border-radius: 13px;
+      background: linear-gradient(90deg, transparent, var(--week-wash) 8%, var(--week-wash) 92%, transparent);
       pointer-events: none;
     }
 
-    .day-button:hover .tooltip,
-    .day-button:focus-visible .tooltip {
-      display: block;
+    .day-button, .empty-cell {
+      width: var(--cell);
+      height: var(--cell);
+      justify-self: center;
     }
 
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
+    .day-button {
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--ink);
+      background: transparent;
+      font-size: clamp(.76rem, 3.1cqi, .92rem);
+      font-weight: 620;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform .14s ease, background .14s ease, border-color .14s ease, color .14s ease, box-shadow .14s ease;
+    }
+
+    .day-button:hover { background: rgba(255,255,255,.72); }
+    .day-button:active { transform: scale(.94); }
+    .day-button.is-weekend:not(.is-selected):not(.is-today) { color: var(--weekend); }
+    .day-button.is-today { color: var(--accent-deep); background: var(--accent-soft); font-weight: 800; }
+    .day-button.is-selected { border-color: var(--accent); background: rgba(255,255,255,.82); color: var(--accent-deep); font-weight: 800; box-shadow: 0 4px 13px rgba(80,62,95,.09); }
+    .day-button.is-selected.is-today { color: var(--accent-ink); background: var(--accent); box-shadow: 0 5px 14px rgba(91,67,112,.18); }
+
+    .event-dots { position: absolute; bottom: 3px; left: 50%; display: flex; gap: 2px; transform: translateX(-50%); }
+    .event-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--accent); }
+    .event-dot.soft { background: #aaa0b0; }
+    .event-dot.outline { border: 1px solid var(--accent); background: transparent; }
+    .day-button.is-selected.is-today .event-dot { background: white; border-color: white; }
+
+    .day-detail {
+      margin: 0 var(--side) var(--side);
       overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,.78);
+      border-radius: 19px;
+      background: linear-gradient(100deg, var(--accent-soft), rgba(255,255,255,.52));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
     }
 
-    @media (max-width: 520px) {
-      :root {
-        --widget-max-width: 430px;
-        --cell-size: 32px;
-        --grid-row-gap: 6px;
-        --grid-column-gap: 5px;
-        --grid-side-padding: 30px;
-        --grid-bottom-padding: 28px;
-        --toolbar-top-padding: 24px;
-        --toolbar-side-padding: 30px;
-        --toolbar-bottom-padding: 17px;
-      }
-
-      .weekday {
-        height: 24px;
-      }
+    .day-detail-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      align-items: center;
+      gap: 16px;
+      padding: 15px 17px;
+      border: 0;
+      color: inherit;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
     }
 
-    @media (max-width: 340px) {
-      :root {
-        --embed-padding: 8px;
-        --widget-radius: 24px;
-        --cell-size: 30px;
-        --grid-row-gap: 6px;
-        --grid-column-gap: 4px;
-        --grid-side-padding: 21px;
-        --grid-bottom-padding: 23px;
-        --toolbar-top-padding: 21px;
-        --toolbar-side-padding: 22px;
-        --toolbar-bottom-padding: 14px;
-      }
+    .detail-date { display: block; color: var(--accent-deep); font-size: .63rem; font-weight: 820; letter-spacing: .12em; text-transform: uppercase; }
+    .detail-summary { display: block; overflow: hidden; margin-top: 6px; font-size: .82rem; font-weight: 650; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+    .detail-chevron { color: var(--accent-deep); font-size: .84rem; transition: transform .15s ease; }
+    .day-detail.is-open .detail-chevron { transform: rotate(180deg); }
+    .detail-events { display: none; margin: 0; padding: 0 17px 16px 32px; color: var(--ink); font-size: .76rem; line-height: 1.5; }
+    .day-detail.is-open .detail-events { display: block; }
+    .detail-events li + li { margin-top: 4px; }
+    .detail-empty { list-style: none; margin-left: -15px; color: var(--muted); }
 
-      body {
-        padding: var(--embed-padding);
-      }
+    :focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 42%, transparent); outline-offset: 3px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 
-      .calendar {
-        border-radius: var(--widget-radius);
-      }
+    .calendar[data-height="short"] .toolbar { padding-top: 15px; padding-bottom: 8px; }
+    .calendar[data-height="short"] .calendar-grid { padding-bottom: 9px; }
+    .calendar[data-height="short"] .day-detail { margin-bottom: 14px; }
+    .calendar[data-height="short"] .day-detail-button { padding-block: 10px; }
+    .calendar[data-height="short"] .detail-events { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
-      .toolbar {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 12px;
-      }
+    @container calendar (max-width: 455px) {
+      .toolbar { gap: 10px; padding-top: 20px; }
+      .month-title { font-size: 1.4rem; }
+      .today-button { width: 36px; padding: 0; font-size: 0; }
+      .today-button::before { content: "●"; font-size: .55rem; }
+      .day-detail { border-radius: 17px; }
+    }
 
-      .icon-button {
-        width: 34px;
-        height: 34px;
-      }
+    @container calendar (max-width: 345px) {
+      .toolbar { grid-template-columns: minmax(0,1fr); padding-top: 17px; padding-bottom: 10px; }
+      .controls { justify-content: space-between; }
+      .menu { margin-left: auto; }
+      .month-title { font-size: 1.3rem; }
+      .calendar-grid { padding-bottom: 12px; }
+      .day-detail { margin-bottom: 16px; }
+      .detail-summary { font-size: .76rem; }
+    }
 
-      .nav-controls {
-        grid-template-columns: 34px auto 34px;
-        justify-self: start;
-      }
-
-      .month-title {
-        font-size: 1.25rem;
-      }
-
-      .day-button {
-        font-size: 0.88rem;
-      }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
 <body>
-  <main class="calendar" aria-label="Mini calendar">
-    <div class="toolbar">
-      <button class="month-button" id="todayButton" type="button" aria-label="Jump to today" title="Jump to today">
+  <main class="calendar" id="calendar" aria-label="Mini calendar">
+    <header class="toolbar">
+      <button class="month-button" id="monthButton" type="button" aria-label="Jump to today" title="Jump to today">
         <span class="month-title" id="monthTitle"></span>
         <span class="year-label" id="yearLabel"></span>
       </button>
 
-      <nav class="nav-controls" aria-label="Calendar navigation">
-        <button class="icon-button" id="prevWeek" type="button" aria-label="Previous month" title="Previous month">
-          ‹
-        </button>
+      <div class="controls">
+        <nav class="nav-controls" aria-label="Calendar navigation">
+          <button class="icon-button" id="prevMonth" type="button" aria-label="Previous month" title="Previous month">‹</button>
+          <button class="today-button" id="todayButton" type="button" aria-label="Return to this month">Today</button>
+          <button class="icon-button" id="nextMonth" type="button" aria-label="Next month" title="Next month">›</button>
+        </nav>
 
-        <button class="today-button" id="todayPill" type="button" aria-label="Return to this month">
-          Today
-        </button>
+        <details class="menu" id="settingsMenu">
+          <summary aria-label="Calendar appearance" title="Calendar appearance">•••</summary>
+          <div class="menu-panel">
+            <p class="menu-title">Background colour</p>
+            <div class="swatches" id="themeSwatches" aria-label="Background colours"></div>
+            <label class="menu-row">Show event markers
+              <span class="switch"><input id="eventsToggle" type="checkbox"><span aria-hidden="true"></span></span>
+            </label>
+            <label class="menu-row">Week starts Monday
+              <span class="switch"><input id="mondayToggle" type="checkbox"><span aria-hidden="true"></span></span>
+            </label>
+          </div>
+        </details>
+      </div>
+    </header>
 
-        <button class="icon-button" id="nextWeek" type="button" aria-label="Next month" title="Next month">
-          ›
-        </button>
-      </nav>
-    </div>
+    <section class="calendar-grid" id="calendarGrid" aria-label="Monthly calendar"></section>
 
-    <section class="grid" id="calendarGrid" aria-label="Monthly calendar">
-      <div class="weekday" aria-hidden="true">Mo</div>
-      <div class="weekday" aria-hidden="true">Tu</div>
-      <div class="weekday" aria-hidden="true">We</div>
-      <div class="weekday" aria-hidden="true">Th</div>
-      <div class="weekday" aria-hidden="true">Fr</div>
-      <div class="weekday" aria-hidden="true">Sa</div>
-      <div class="weekday" aria-hidden="true">Su</div>
+    <section class="day-detail" id="dayDetail" aria-labelledby="detailDate">
+      <button class="day-detail-button" id="detailButton" type="button" aria-expanded="false" aria-controls="detailEvents">
+        <span><span class="detail-date" id="detailDate"></span><span class="detail-summary" id="detailSummary"></span></span>
+        <span class="detail-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <ul class="detail-events" id="detailEvents"></ul>
     </section>
 
     <p class="sr-only" id="liveStatus" aria-live="polite"></p>
   </main>
 
   <script>
-    const monthTitle = document.getElementById("monthTitle");
-    const yearLabel = document.getElementById("yearLabel");
-    const todayPill = document.getElementById("todayPill");
-    const liveStatus = document.getElementById("liveStatus");
-    const calendarGrid = document.getElementById("calendarGrid");
-    const prevWeek = document.getElementById("prevWeek");
-    const nextWeek = document.getElementById("nextWeek");
-    const todayButton = document.getElementById("todayButton");
-    const calendarCard = document.querySelector(".calendar");
+    const $ = (selector) => document.querySelector(selector);
+    const calendar = $("#calendar");
+    const calendarGrid = $("#calendarGrid");
+    const monthTitle = $("#monthTitle");
+    const yearLabel = $("#yearLabel");
+    const todayButton = $("#todayButton");
+    const liveStatus = $("#liveStatus");
+    const dayDetail = $("#dayDetail");
+    const detailButton = $("#detailButton");
+    const detailDate = $("#detailDate");
+    const detailSummary = $("#detailSummary");
+    const detailEvents = $("#detailEvents");
+    const settingsMenu = $("#settingsMenu");
+    const eventsToggle = $("#eventsToggle");
+    const mondayToggle = $("#mondayToggle");
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     document.body.classList.toggle("embed", params.has("embed"));
-    document.body.classList.toggle("compact", params.has("compact"));
     document.body.classList.toggle("preview", params.has("preview"));
 
-    const previewWidth = Number(params.get("w"));
-    const previewHeight = Number(params.get("h"));
-
-    if (Number.isFinite(previewWidth) && previewWidth > 0) {
-      calendarCard.style.width = `${previewWidth}px`;
-    }
-
-    if (Number.isFinite(previewHeight) && previewHeight > 0) {
-      calendarCard.style.height = `${previewHeight}px`;
-    }
-
-    const weekdays = 7;
-    let today = startOfDay(new Date());
-    let selectedDate = new Date(today);
-    let visibleMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    let shouldFocusSelectedDay = false;
-
-    const monthFormatter = new Intl.DateTimeFormat("en-AU", {
-      month: "long"
-    });
-    const fullFormatter = new Intl.DateTimeFormat("en-AU", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
-
-    const EVENT_TYPE = {
-      PUBLIC_HOLIDAY: "public-holiday",
-      SCHOOL: "school",
-      FIRST_NATIONS: "first-nations",
-      OBSERVANCE: "observance",
-      WELLBEING: "wellbeing",
-      PERSONAL: "personal"
+    const THEMES = {
+      default: { label: "Lilac", page: "#eeeafe", shell: "rgba(255,255,255,.86)", solid: "#fbfaff", accent: "#8c73a8", deep: "#62506f", soft: "#eee7f7", wash: "rgba(202,187,221,.18)", swatch: "#d9cbed" },
+      gray: { label: "Gray", page: "#eeeeec", shell: "rgba(255,255,255,.87)", solid: "#fbfbfa", accent: "#8c8b87", deep: "#595854", soft: "#efefed", wash: "rgba(190,189,184,.18)", swatch: "#d9d9d6" },
+      brown: { label: "Brown", page: "#f3ece7", shell: "rgba(255,253,251,.88)", solid: "#fffdfb", accent: "#a37b65", deep: "#6e5041", soft: "#f3e8e1", wash: "rgba(209,179,160,.18)", swatch: "#dfc4b4" },
+      orange: { label: "Orange", page: "#fbecdd", shell: "rgba(255,253,249,.88)", solid: "#fffdf9", accent: "#cf8745", deep: "#87572d", soft: "#f9e6d2", wash: "rgba(231,174,116,.18)", swatch: "#efbd87" },
+      yellow: { label: "Yellow", page: "#faf2d4", shell: "rgba(255,254,248,.88)", solid: "#fffef8", accent: "#b89a3c", deep: "#756322", soft: "#f8efcf", wash: "rgba(219,196,112,.19)", swatch: "#e8d47e" },
+      green: { label: "Green", page: "#e7f1e9", shell: "rgba(252,255,253,.88)", solid: "#fcfffd", accent: "#6f9b79", deep: "#45674d", soft: "#e4f0e7", wash: "rgba(139,185,150,.18)", swatch: "#a9ceb1" },
+      blue: { label: "Blue", page: "#e7f0f7", shell: "rgba(252,254,255,.88)", solid: "#fcfeff", accent: "#7098b7", deep: "#46657c", soft: "#e2edf5", wash: "rgba(137,176,205,.18)", swatch: "#abc9df" },
+      purple: { label: "Purple", page: "#eee7f4", shell: "rgba(255,253,255,.88)", solid: "#fffaff", accent: "#9475aa", deep: "#654c75", soft: "#eee4f4", wash: "rgba(178,147,198,.18)", swatch: "#cbb4da" },
+      pink: { label: "Pink", page: "#f7e7ee", shell: "rgba(255,253,254,.88)", solid: "#fffaff", accent: "#b77b96", deep: "#7c5064", soft: "#f5e3eb", wash: "rgba(210,154,180,.18)", swatch: "#dfb5c8" },
+      red: { label: "Red", page: "#f8e8e6", shell: "rgba(255,253,252,.88)", solid: "#fffafa", accent: "#b9736d", deep: "#7d4b47", soft: "#f6e4e2", wash: "rgba(207,139,133,.18)", swatch: "#dda9a4" }
     };
 
+    const EVENT_TYPE = { HOLIDAY: "holiday", SCHOOL: "school", FIRST_NATIONS: "first-nations", OBSERVANCE: "observance", WELLBEING: "wellbeing" };
     const EVENTS = buildEventMap([
-      { date: "2026-01-01", label: "New Year's Day", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-01-26", label: "Australia Day", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-03-09", label: "Labour Day", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-04-03", label: "Good Friday", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-04-04", label: "Saturday before Easter Sunday", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-04-05", label: "Easter Sunday", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-04-06", label: "Easter Monday", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-04-25", label: "ANZAC Day", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-06-08", label: "King's Birthday", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-09-25", label: "Friday before the AFL Grand Final", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-11-03", label: "Melbourne Cup", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-12-25", label: "Christmas Day", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-12-26", label: "Boxing Day", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-12-28", label: "Additional public holiday for Boxing Day", type: EVENT_TYPE.PUBLIC_HOLIDAY },
-      { date: "2026-01-28", label: "School Term 1 starts (students)", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-04-02", label: "School Term 1 ends", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-04-03", label: "Autumn school holidays begin", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-04-17", label: "Autumn school holidays end", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-04-20", label: "School Term 2 starts", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-06-26", label: "School Term 2 ends", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-06-29", label: "Winter school holidays begin", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-07-10", label: "Winter school holidays end", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-07-13", label: "School Term 3 starts", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-09-18", label: "School Term 3 ends", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-09-21", label: "Spring school holidays begin", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-10-02", label: "Spring school holidays end", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-10-05", label: "School Term 4 starts", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-12-18", label: "School Term 4 ends", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-12-21", label: "Summer school holidays begin", type: EVENT_TYPE.SCHOOL },
-      { date: "2026-02-13", label: "Anniversary of the National Apology", type: EVENT_TYPE.FIRST_NATIONS },
-      { date: "2026-03-19", label: "National Close the Gap Day", type: EVENT_TYPE.FIRST_NATIONS },
-      { date: "2026-05-26", label: "National Sorry Day", type: EVENT_TYPE.FIRST_NATIONS },
-      { start: "2026-05-27", end: "2026-06-03", label: "National Reconciliation Week", type: EVENT_TYPE.FIRST_NATIONS },
-      { start: "2026-07-05", end: "2026-07-12", label: "NAIDOC Week", type: EVENT_TYPE.FIRST_NATIONS },
-      { date: "2026-08-09", label: "International Day of the World's Indigenous Peoples", type: EVENT_TYPE.FIRST_NATIONS },
-      { start: "2026-02-17", end: "2026-02-21", label: "Lunar New Year / Year of the Horse", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-02-18", label: "Ramadan begins (dates may vary)", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-03-04", label: "Holi", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-03-08", label: "International Women's Day", type: EVENT_TYPE.OBSERVANCE },
-      { start: "2026-03-16", end: "2026-03-22", label: "Harmony Week", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-03-20", label: "Eid al-Fitr (dates may vary)", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-03-21", label: "International Day for the Elimination of Racial Discrimination", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-04-02", label: "World Autism Awareness Day", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-04-14", label: "Vaisakhi", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-05-01", label: "Vesak / Buddha Day", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-05-17", label: "IDAHOBIT", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-06-05", label: "World Environment Day", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-06-20", label: "World Refugee Day", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-06-21", label: "International Day of Yoga", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-08-12", label: "International Youth Day", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-09-21", label: "International Day of Peace", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-09-25", label: "Mid-Autumn Festival", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-10-17", label: "International Day for the Eradication of Poverty", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-11-08", label: "Diwali", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-11-11", label: "Remembrance Day", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-11-20", label: "World Children's Day", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-11-25", label: "International Day for the Elimination of Violence against Women", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-12-03", label: "International Day of People with Disability", type: EVENT_TYPE.OBSERVANCE },
-      { start: "2026-12-04", end: "2026-12-12", label: "Hanukkah", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-12-10", label: "Human Rights Day", type: EVENT_TYPE.OBSERVANCE },
-      { date: "2026-04-07", label: "World Health Day", type: EVENT_TYPE.WELLBEING },
-      { date: "2026-05-12", label: "International Nurses Day", type: EVENT_TYPE.WELLBEING },
-      { start: "2026-06-15", end: "2026-06-21", label: "Men's Health Week", type: EVENT_TYPE.WELLBEING },
-      { date: "2026-09-10", label: "World Suicide Prevention Day", type: EVENT_TYPE.WELLBEING },
-      { start: "2026-10-01", end: "2026-10-31", label: "Mental Health Month", type: EVENT_TYPE.WELLBEING },
-      { start: "2026-10-01", end: "2026-10-07", label: "BPD Awareness Week", type: EVENT_TYPE.WELLBEING },
-      { date: "2026-10-10", label: "World Mental Health Day", type: EVENT_TYPE.WELLBEING },
-      { date: "2026-10-10", label: "World Homeless Day", type: EVENT_TYPE.WELLBEING },
-      { start: "2026-10-11", end: "2026-10-17", label: "National Carers Week", type: EVENT_TYPE.WELLBEING },
-      { start: "2026-10-11", end: "2026-10-17", label: "OCD Awareness Week", type: EVENT_TYPE.WELLBEING }
+      {date:"2026-01-01",label:"New Year's Day",type:EVENT_TYPE.HOLIDAY},{date:"2026-01-26",label:"Australia Day",type:EVENT_TYPE.HOLIDAY},{date:"2026-03-09",label:"Labour Day",type:EVENT_TYPE.HOLIDAY},{date:"2026-04-03",label:"Good Friday",type:EVENT_TYPE.HOLIDAY},{date:"2026-04-04",label:"Saturday before Easter Sunday",type:EVENT_TYPE.HOLIDAY},{date:"2026-04-05",label:"Easter Sunday",type:EVENT_TYPE.HOLIDAY},{date:"2026-04-06",label:"Easter Monday",type:EVENT_TYPE.HOLIDAY},{date:"2026-04-25",label:"ANZAC Day",type:EVENT_TYPE.HOLIDAY},{date:"2026-06-08",label:"King's Birthday",type:EVENT_TYPE.HOLIDAY},{date:"2026-09-25",label:"Friday before the AFL Grand Final",type:EVENT_TYPE.HOLIDAY},{date:"2026-11-03",label:"Melbourne Cup",type:EVENT_TYPE.HOLIDAY},{date:"2026-12-25",label:"Christmas Day",type:EVENT_TYPE.HOLIDAY},{date:"2026-12-26",label:"Boxing Day",type:EVENT_TYPE.HOLIDAY},{date:"2026-12-28",label:"Additional public holiday for Boxing Day",type:EVENT_TYPE.HOLIDAY},
+      {date:"2026-01-28",label:"School Term 1 starts",type:EVENT_TYPE.SCHOOL},{date:"2026-04-02",label:"School Term 1 ends",type:EVENT_TYPE.SCHOOL},{start:"2026-04-03",end:"2026-04-17",label:"Autumn school holidays",type:EVENT_TYPE.SCHOOL},{date:"2026-04-20",label:"School Term 2 starts",type:EVENT_TYPE.SCHOOL},{date:"2026-06-26",label:"School Term 2 ends",type:EVENT_TYPE.SCHOOL},{start:"2026-06-29",end:"2026-07-10",label:"Winter school holidays",type:EVENT_TYPE.SCHOOL},{date:"2026-07-13",label:"School Term 3 starts",type:EVENT_TYPE.SCHOOL},{date:"2026-09-18",label:"School Term 3 ends",type:EVENT_TYPE.SCHOOL},{start:"2026-09-21",end:"2026-10-02",label:"Spring school holidays",type:EVENT_TYPE.SCHOOL},{date:"2026-10-05",label:"School Term 4 starts",type:EVENT_TYPE.SCHOOL},{date:"2026-12-18",label:"School Term 4 ends",type:EVENT_TYPE.SCHOOL},{start:"2026-12-21",end:"2026-12-31",label:"Summer school holidays",type:EVENT_TYPE.SCHOOL},
+      {date:"2026-02-13",label:"Anniversary of the National Apology",type:EVENT_TYPE.FIRST_NATIONS},{date:"2026-03-19",label:"National Close the Gap Day",type:EVENT_TYPE.FIRST_NATIONS},{date:"2026-05-26",label:"National Sorry Day",type:EVENT_TYPE.FIRST_NATIONS},{start:"2026-05-27",end:"2026-06-03",label:"National Reconciliation Week",type:EVENT_TYPE.FIRST_NATIONS},{start:"2026-07-05",end:"2026-07-12",label:"NAIDOC Week",type:EVENT_TYPE.FIRST_NATIONS},{date:"2026-08-09",label:"International Day of the World's Indigenous Peoples",type:EVENT_TYPE.FIRST_NATIONS},
+      {start:"2026-02-17",end:"2026-02-21",label:"Lunar New Year / Year of the Horse",type:EVENT_TYPE.OBSERVANCE},{date:"2026-02-18",label:"Ramadan begins (dates may vary)",type:EVENT_TYPE.OBSERVANCE},{date:"2026-03-04",label:"Holi",type:EVENT_TYPE.OBSERVANCE},{date:"2026-03-08",label:"International Women's Day",type:EVENT_TYPE.OBSERVANCE},{start:"2026-03-16",end:"2026-03-22",label:"Harmony Week",type:EVENT_TYPE.OBSERVANCE},{date:"2026-03-20",label:"Eid al-Fitr (dates may vary)",type:EVENT_TYPE.OBSERVANCE},{date:"2026-03-21",label:"International Day for the Elimination of Racial Discrimination",type:EVENT_TYPE.OBSERVANCE},{date:"2026-04-02",label:"World Autism Awareness Day",type:EVENT_TYPE.OBSERVANCE},{date:"2026-04-14",label:"Vaisakhi",type:EVENT_TYPE.OBSERVANCE},{date:"2026-05-01",label:"Vesak / Buddha Day",type:EVENT_TYPE.OBSERVANCE},{date:"2026-05-17",label:"IDAHOBIT",type:EVENT_TYPE.OBSERVANCE},{date:"2026-06-05",label:"World Environment Day",type:EVENT_TYPE.OBSERVANCE},{date:"2026-06-20",label:"World Refugee Day",type:EVENT_TYPE.OBSERVANCE},{date:"2026-06-21",label:"International Day of Yoga",type:EVENT_TYPE.OBSERVANCE},{date:"2026-08-12",label:"International Youth Day",type:EVENT_TYPE.OBSERVANCE},{date:"2026-09-21",label:"International Day of Peace",type:EVENT_TYPE.OBSERVANCE},{date:"2026-09-25",label:"Mid-Autumn Festival",type:EVENT_TYPE.OBSERVANCE},{date:"2026-10-17",label:"International Day for the Eradication of Poverty",type:EVENT_TYPE.OBSERVANCE},{date:"2026-11-08",label:"Diwali",type:EVENT_TYPE.OBSERVANCE},{date:"2026-11-11",label:"Remembrance Day",type:EVENT_TYPE.OBSERVANCE},{date:"2026-11-20",label:"World Children's Day",type:EVENT_TYPE.OBSERVANCE},{date:"2026-11-25",label:"International Day for the Elimination of Violence against Women",type:EVENT_TYPE.OBSERVANCE},{date:"2026-12-03",label:"International Day of People with Disability",type:EVENT_TYPE.OBSERVANCE},{start:"2026-12-04",end:"2026-12-12",label:"Hanukkah",type:EVENT_TYPE.OBSERVANCE},{date:"2026-12-10",label:"Human Rights Day",type:EVENT_TYPE.OBSERVANCE},
+      {date:"2026-04-07",label:"World Health Day",type:EVENT_TYPE.WELLBEING},{date:"2026-05-12",label:"International Nurses Day",type:EVENT_TYPE.WELLBEING},{start:"2026-06-15",end:"2026-06-21",label:"Men's Health Week",type:EVENT_TYPE.WELLBEING},{date:"2026-09-10",label:"World Suicide Prevention Day",type:EVENT_TYPE.WELLBEING},{start:"2026-10-01",end:"2026-10-31",label:"Mental Health Month",type:EVENT_TYPE.WELLBEING},{start:"2026-10-01",end:"2026-10-07",label:"BPD Awareness Week",type:EVENT_TYPE.WELLBEING},{date:"2026-10-10",label:"World Mental Health Day",type:EVENT_TYPE.WELLBEING},{date:"2026-10-10",label:"World Homeless Day",type:EVENT_TYPE.WELLBEING},{start:"2026-10-11",end:"2026-10-17",label:"National Carers Week",type:EVENT_TYPE.WELLBEING},{start:"2026-10-11",end:"2026-10-17",label:"OCD Awareness Week",type:EVENT_TYPE.WELLBEING}
     ]);
 
-    function startOfDay(date) {
-      const nextDate = new Date(date);
-      nextDate.setHours(0, 0, 0, 0);
-      return nextDate;
-    }
+    const storageKey = "little-widgets-mini-calendar-v2";
+    const saved = loadPreferences();
+    let preferences = { theme: saved.theme in THEMES ? saved.theme : "default", showEvents: saved.showEvents !== false, mondayFirst: saved.mondayFirst !== false };
+    let today = startOfDay(new Date());
+    let selectedDate = new Date(today);
+    let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    let focusAfterRender = false;
 
-    function addDays(date, days) {
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + days);
-      return startOfDay(nextDate);
-    }
+    const monthFormatter = new Intl.DateTimeFormat("en-AU", {month:"long"});
+    const detailFormatter = new Intl.DateTimeFormat("en-AU", {weekday:"long",day:"numeric",month:"long"});
+    const fullFormatter = new Intl.DateTimeFormat("en-AU", {weekday:"long",day:"numeric",month:"long",year:"numeric"});
 
-    function dateFromKey(dateKey) {
-      const [year, month, day] = dateKey.split("-").map(Number);
-      return new Date(year, month - 1, day);
-    }
+    function loadPreferences() { try { return JSON.parse(localStorage.getItem(storageKey)) || {}; } catch { return {}; } }
+    function savePreferences() { try { localStorage.setItem(storageKey, JSON.stringify(preferences)); } catch {} }
+    function startOfDay(date) { const next = new Date(date); next.setHours(0,0,0,0); return next; }
+    function addDays(date, days) { const next = new Date(date.getFullYear(), date.getMonth(), date.getDate() + days, 12); return startOfDay(next); }
+    function dateFromKey(key) { const [y,m,d] = key.split("-").map(Number); return new Date(y,m-1,d,12); }
+    function dateKey(date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`; }
+    function sameDate(a,b) { return dateKey(a) === dateKey(b); }
+    function sameMonth(a,b) { return a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear(); }
+    function isWeekend(date) { return date.getDay() === 0 || date.getDay() === 6; }
 
-    function getDateKey(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    }
-
-    function buildEventMap(events) {
+    function buildEventMap(items) {
       const map = {};
-
-      function addEvent(dateKey, event) {
-        map[dateKey] = map[dateKey] ?? [];
-
-        const alreadyAdded = map[dateKey].some(
-          (savedEvent) => savedEvent.label === event.label && savedEvent.type === event.type
-        );
-
-        if (!alreadyAdded) {
-          map[dateKey].push({ label: event.label, type: event.type });
-        }
-      }
-
-      events.forEach((event) => {
-        if (event.date) {
-          addEvent(event.date, event);
-          return;
-        }
-
-        const start = dateFromKey(event.start);
-        const end = dateFromKey(event.end);
-
-        for (let date = start; date <= end; date = addDays(date, 1)) {
-          addEvent(getDateKey(date), event);
-        }
+      const add = (key,event) => { map[key] ||= []; if (!map[key].some(item => item.label === event.label && item.type === event.type)) map[key].push({label:event.label,type:event.type}); };
+      items.forEach(event => {
+        if (event.date) return add(event.date,event);
+        for (let day = dateFromKey(event.start); day <= dateFromKey(event.end); day = addDays(day,1)) add(dateKey(day),event);
       });
-
       return map;
     }
 
-    function getMonday(date) {
-      const nextDate = startOfDay(date);
-      const day = nextDate.getDay();
-      const diff = day === 0 ? -6 : 1 - day;
-      return addDays(nextDate, diff);
+    function applyTheme(name) {
+      const theme = THEMES[name] || THEMES.default;
+      const root = document.documentElement.style;
+      root.setProperty("--page",theme.page); root.setProperty("--shell",theme.shell); root.setProperty("--shell-solid",theme.solid);
+      root.setProperty("--accent",theme.accent); root.setProperty("--accent-deep",theme.deep); root.setProperty("--accent-soft",theme.soft); root.setProperty("--week-wash",theme.wash);
+      if (document.body.classList.contains("preview")) document.body.style.backgroundColor = theme.page;
+      document.querySelectorAll(".swatch").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.theme === name)));
     }
 
-    function isSameDate(a, b) {
-      return (
-        a.getDate() === b.getDate() &&
-        a.getMonth() === b.getMonth() &&
-        a.getFullYear() === b.getFullYear()
-      );
-    }
-
-    function isWeekend(date) {
-      const day = date.getDay();
-      return day === 0 || day === 6;
-    }
-
-    function getPrimaryEventType(events) {
-      const priority = [
-        EVENT_TYPE.PUBLIC_HOLIDAY,
-        EVENT_TYPE.FIRST_NATIONS,
-        EVENT_TYPE.WELLBEING,
-        EVENT_TYPE.SCHOOL,
-        EVENT_TYPE.OBSERVANCE,
-        EVENT_TYPE.PERSONAL
-      ];
-
-      return priority.find((type) => events.some((event) => event.type === type)) ?? EVENT_TYPE.OBSERVANCE;
-    }
-
-    function getEventText(events) {
-      return events.map((event) => event.label).join(" + ");
-    }
-
-    function getEventClass(events) {
-      const type = getPrimaryEventType(events);
-
-      if (type === EVENT_TYPE.WELLBEING || type === EVENT_TYPE.SCHOOL) {
-        return "has-soft-event";
-      }
-
-      if (type === EVENT_TYPE.OBSERVANCE) {
-        return "has-outline-event";
-      }
-
-      return "has-strong-event";
-    }
-
-    function getVisibleDates() {
-      const year = visibleMonthDate.getFullYear();
-      const month = visibleMonthDate.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const firstDay = new Date(year, month, 1);
-      const startOffset = (firstDay.getDay() + 6) % 7;
-
-      return Array.from({ length: 42 }, (_, index) => {
-        const day = index - startOffset + 1;
-
-        if (day < 1 || day > daysInMonth) {
-          return null;
-        }
-
-        return startOfDay(new Date(year, month, day));
+    function createThemeControls() {
+      Object.entries(THEMES).forEach(([name,theme]) => {
+        const button = document.createElement("button"); button.type = "button"; button.className = "swatch"; button.dataset.theme = name;
+        button.style.setProperty("--swatch",theme.swatch); button.setAttribute("aria-label",theme.label); button.title = theme.label;
+        button.addEventListener("click", () => { preferences.theme = name; applyTheme(name); savePreferences(); });
+        $("#themeSwatches").append(button);
       });
     }
 
-    function clamp(value, min, max) {
-      return Math.min(Math.max(value, min), max);
+    function visibleDates() {
+      const y = visibleMonth.getFullYear(), m = visibleMonth.getMonth();
+      const offset = preferences.mondayFirst ? (new Date(y,m,1).getDay()+6)%7 : new Date(y,m,1).getDay();
+      const days = new Date(y,m+1,0).getDate();
+      return Array.from({length:42},(_,index) => { const day = index-offset+1; return day < 1 || day > days ? null : startOfDay(new Date(y,m,day)); });
     }
 
-    function fitCalendarToWidget() {
-      const rect = calendarCard.getBoundingClientRect();
-      const width = rect.width;
-      const height = rect.height;
-      const compact = width < 460;
-      const stacked = width < 340;
-      const sidePadding = clamp(width * (compact ? 0.06 : 0.052), 18, 34);
-      const availableGridWidth = width - sidePadding * 2;
-      const columnGap = clamp(availableGridWidth * 0.018, 3, 12);
-      const cellFromWidth = (availableGridWidth - columnGap * 6) / 7;
-      const toolbarHeightBudget = stacked ? 100 : 74;
-      const weekdayHeight = compact ? 24 : 21;
-      const bottomPadding = clamp(height * 0.06, 16, 30);
-      const heightSafetyMargin = 12;
-      const gridHeightBudget = height - toolbarHeightBudget - weekdayHeight - bottomPadding - heightSafetyMargin;
-      const rowGap = clamp(gridHeightBudget * 0.018, 3, 8);
-      const cellFromHeight = (gridHeightBudget - rowGap * 5) / 6;
-      const cellSize = clamp(Math.min(cellFromWidth, cellFromHeight), 24, 40);
-      const navSize = clamp(cellSize + 2, 30, 38);
-      const dotSize = clamp(cellSize * 0.13, 3, 5);
-      const dotBottom = clamp(cellSize * 0.12, 2.5, 5);
-      const dayFontSize = clamp(cellSize * 0.43, 12, 16);
+    function dotClass(type) { if (type === EVENT_TYPE.OBSERVANCE) return "outline"; if (type === EVENT_TYPE.SCHOOL || type === EVENT_TYPE.WELLBEING) return "soft"; return "strong"; }
 
-      calendarCard.style.setProperty("--cell-size", `${cellSize}px`);
-      calendarCard.style.setProperty("--grid-column-gap", `${columnGap}px`);
-      calendarCard.style.setProperty("--grid-row-gap", `${rowGap}px`);
-      calendarCard.style.setProperty("--grid-side-padding", `${sidePadding}px`);
-      calendarCard.style.setProperty("--grid-bottom-padding", `${bottomPadding}px`);
-      calendarCard.style.setProperty("--toolbar-top-padding", `${clamp(height * 0.062, 16, 26)}px`);
-      calendarCard.style.setProperty("--toolbar-side-padding", `${sidePadding}px`);
-      calendarCard.style.setProperty("--toolbar-bottom-padding", `${clamp(height * 0.034, 9, 18)}px`);
-      calendarCard.style.setProperty("--month-font-size", `${clamp(width * 0.039, 19, 27)}px`);
-      calendarCard.style.setProperty("--year-font-size", `${clamp(width * 0.019, 10, 13)}px`);
-      calendarCard.style.setProperty("--nav-size", `${navSize}px`);
-      calendarCard.style.setProperty("--today-height", `${navSize}px`);
-      calendarCard.style.setProperty("--day-font-size", `${dayFontSize}px`);
-      calendarCard.style.setProperty("--dot-size", `${dotSize}px`);
-      calendarCard.style.setProperty("--dot-bottom", `${dotBottom}px`);
+    function updateDetail() {
+      const events = preferences.showEvents ? (EVENTS[dateKey(selectedDate)] || []) : [];
+      detailDate.textContent = detailFormatter.format(selectedDate);
+      detailSummary.textContent = events.length ? `${events[0].label}${events.length > 1 ? ` · +${events.length-1}` : ""}` : "nothing planned ♡";
+      detailEvents.replaceChildren();
+      if (!events.length) {
+        const li = document.createElement("li"); li.className = "detail-empty"; li.textContent = "A clear little day."; detailEvents.append(li);
+      } else events.forEach(event => { const li = document.createElement("li"); li.textContent = event.label; detailEvents.append(li); });
+      detailButton.disabled = false;
     }
 
-    function updateVisibleWindowForSelectedDate() {
-      visibleMonthDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-    }
+    function render() {
+      calendarGrid.replaceChildren();
+      const weekdayLabels = preferences.mondayFirst ? ["Mo","Tu","We","Th","Fr","Sa","Su"] : ["Su","Mo","Tu","We","Th","Fr","Sa"];
+      weekdayLabels.forEach(label => { const item = document.createElement("div"); item.className = "weekday"; item.setAttribute("aria-hidden","true"); item.textContent = label; calendarGrid.append(item); });
 
-    function renderCalendar() {
-      calendarGrid.querySelectorAll(".day-button, .empty-cell").forEach((day) => day.remove());
+      const dates = visibleDates();
+      const todayIndex = dates.findIndex(date => date && sameDate(date,today));
+      if (todayIndex >= 0) {
+        const wash = document.createElement("div"); wash.className = "week-wash"; wash.setAttribute("aria-hidden","true"); wash.style.setProperty("--week-row",Math.floor(todayIndex/7)); calendarGrid.append(wash);
+      }
 
-      const visibleDates = getVisibleDates();
-      let selectedDayButton = null;
-      const showingCurrentMonth =
-        visibleMonthDate.getMonth() === today.getMonth() &&
-        visibleMonthDate.getFullYear() === today.getFullYear();
-
-      monthTitle.textContent = monthFormatter.format(visibleMonthDate);
-      yearLabel.textContent = visibleMonthDate.getFullYear();
-      todayPill.classList.toggle("is-current-month", showingCurrentMonth);
+      let selectedButton;
+      dates.forEach(date => {
+        if (!date) { const empty = document.createElement("span"); empty.className = "empty-cell"; empty.setAttribute("aria-hidden","true"); calendarGrid.append(empty); return; }
+        const events = preferences.showEvents ? (EVENTS[dateKey(date)] || []) : [];
+        const button = document.createElement("button"); button.type = "button"; button.className = "day-button"; button.textContent = date.getDate();
+        const selected = sameDate(date,selectedDate);
+        button.setAttribute("aria-label",`${selected ? "Selected, " : ""}${fullFormatter.format(date)}${events.length ? `, ${events.map(event=>event.label).join(", ")}` : ""}`);
+        button.tabIndex = selected ? 0 : -1;
+        if (isWeekend(date)) button.classList.add("is-weekend");
+        if (sameDate(date,today)) { button.classList.add("is-today"); button.setAttribute("aria-current","date"); }
+        if (sameDate(date,selectedDate)) { button.classList.add("is-selected"); selectedButton = button; }
+        if (events.length) {
+          const dots = document.createElement("span"); dots.className = "event-dots"; dots.setAttribute("aria-hidden","true");
+          [...new Set(events.map(event=>dotClass(event.type)))].slice(0,3).forEach(kind => { const dot = document.createElement("span"); dot.className = `event-dot ${kind}`; dots.append(dot); });
+          button.append(dots);
+        }
+        button.addEventListener("click",() => { selectedDate = new Date(date); updateVisibleMonth(); render(); });
+        calendarGrid.append(button);
+      });
+      monthTitle.textContent = monthFormatter.format(visibleMonth); yearLabel.textContent = visibleMonth.getFullYear();
+      todayButton.classList.toggle("is-current-month",sameMonth(visibleMonth,today));
+      updateDetail();
       liveStatus.textContent = `Selected ${fullFormatter.format(selectedDate)}`;
-
-      visibleDates.forEach((date) => {
-        if (!date) {
-          const emptyCell = document.createElement("span");
-          emptyCell.className = "empty-cell";
-          emptyCell.setAttribute("aria-hidden", "true");
-          calendarGrid.appendChild(emptyCell);
-          return;
-        }
-
-        const events = EVENTS[getDateKey(date)] ?? [];
-        const eventText = getEventText(events);
-        const dayButton = document.createElement("button");
-        dayButton.type = "button";
-        dayButton.className = "day-button";
-        dayButton.textContent = date.getDate();
-        dayButton.setAttribute("aria-label", eventText ? `${fullFormatter.format(date)}, ${eventText}` : fullFormatter.format(date));
-
-        if (isWeekend(date)) {
-          dayButton.classList.add("is-weekend");
-        }
-
-        if (isSameDate(date, today)) {
-          dayButton.classList.add("is-today");
-        }
-
-        if (isSameDate(date, selectedDate)) {
-          dayButton.classList.add("is-selected");
-          dayButton.setAttribute("aria-current", "date");
-          dayButton.tabIndex = 0;
-          selectedDayButton = dayButton;
-        } else {
-          dayButton.tabIndex = -1;
-        }
-
-        if (events.length > 0) {
-          dayButton.classList.add(getEventClass(events));
-          dayButton.title = eventText;
-
-          const tooltip = document.createElement("span");
-          tooltip.className = "tooltip";
-          tooltip.textContent = eventText;
-          dayButton.appendChild(tooltip);
-
-          const dot = document.createElement("span");
-          dot.className = "event-dot";
-          dot.setAttribute("aria-hidden", "true");
-          dayButton.appendChild(dot);
-        }
-
-        dayButton.addEventListener("click", () => {
-          selectedDate = new Date(date);
-          shouldFocusSelectedDay = true;
-          renderCalendar();
-        });
-
-        calendarGrid.appendChild(dayButton);
-      });
-
-      if (shouldFocusSelectedDay && selectedDayButton) {
-        selectedDayButton.focus();
-        shouldFocusSelectedDay = false;
-      }
+      if (focusAfterRender && selectedButton) { selectedButton.focus(); focusAfterRender = false; }
+      fit();
     }
 
-    function moveByDays(days, focusSelectedDay = false) {
-      selectedDate = addDays(selectedDate, days);
-      updateVisibleWindowForSelectedDate();
-      shouldFocusSelectedDay = focusSelectedDay;
-      renderCalendar();
+    function updateVisibleMonth() { visibleMonth = new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1); }
+    function moveDays(days) { selectedDate = addDays(selectedDate,days); updateVisibleMonth(); focusAfterRender = true; render(); }
+    function moveMonths(months) {
+      const day = selectedDate.getDate(), target = new Date(selectedDate.getFullYear(),selectedDate.getMonth()+months,1);
+      selectedDate = new Date(target.getFullYear(),target.getMonth(),Math.min(day,new Date(target.getFullYear(),target.getMonth()+1,0).getDate()));
+      updateVisibleMonth(); focusAfterRender = true; render();
+    }
+    function jumpToday() { today = startOfDay(new Date()); selectedDate = new Date(today); updateVisibleMonth(); focusAfterRender = true; render(); }
+
+    function fit() {
+      const rect = calendar.getBoundingClientRect();
+      const side = Math.max(14,Math.min(30,rect.width*.055));
+      const gap = Math.max(2,Math.min(10,rect.width*.016));
+      const cellByWidth = (rect.width-side*2-gap*6)/7;
+      let cell = Math.max(27,Math.min(40,cellByWidth));
+      if (document.body.classList.contains("embed") && rect.height < 380) cell = Math.min(cell,30);
+      calendar.style.setProperty("--side",`${side}px`); calendar.style.setProperty("--column-gap",`${gap}px`); calendar.style.setProperty("--cell",`${cell}px`);
+      calendar.dataset.height = rect.height < 365 ? "short" : "comfortable";
     }
 
-    function moveByMonths(months, focusSelectedDay = false) {
-      const targetMonth = selectedDate.getMonth() + months;
-      const targetYear = selectedDate.getFullYear();
-      const preferredDay = selectedDate.getDate();
-      const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    $("#prevMonth").addEventListener("click",()=>moveMonths(-1));
+    $("#nextMonth").addEventListener("click",()=>moveMonths(1));
+    $("#monthButton").addEventListener("click",jumpToday);
+    todayButton.addEventListener("click",jumpToday);
+    detailButton.addEventListener("click",()=>{ const open = !dayDetail.classList.contains("is-open"); dayDetail.classList.toggle("is-open",open); detailButton.setAttribute("aria-expanded",String(open)); });
+    eventsToggle.addEventListener("change",()=>{ preferences.showEvents = eventsToggle.checked; savePreferences(); render(); });
+    mondayToggle.addEventListener("change",()=>{ preferences.mondayFirst = mondayToggle.checked; savePreferences(); render(); });
 
-      selectedDate = startOfDay(new Date(targetYear, targetMonth, Math.min(preferredDay, lastDayOfTargetMonth)));
-      updateVisibleWindowForSelectedDate();
-      shouldFocusSelectedDay = focusSelectedDay;
-      renderCalendar();
-    }
-
-    prevWeek.addEventListener("click", () => moveByMonths(-1));
-    nextWeek.addEventListener("click", () => moveByMonths(1));
-
-    function jumpToToday() {
-      today = startOfDay(new Date());
-      selectedDate = new Date(today);
-      visibleMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
-      renderCalendar();
-    }
-
-    todayButton.addEventListener("click", jumpToToday);
-    todayPill.addEventListener("click", jumpToToday);
-
-    calendarGrid.addEventListener("keydown", (event) => {
-      const keys = {
-        ArrowLeft: -1,
-        ArrowRight: 1,
-        ArrowUp: -weekdays,
-        ArrowDown: weekdays
-      };
-
-      if (event.key === "Home") {
-        event.preventDefault();
-        selectedDate = new Date(today);
-        visibleMonthDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        renderCalendar();
-        return;
-      }
-
-      if (event.key === "PageUp" || event.key === "PageDown") {
-        event.preventDefault();
-        moveByMonths(event.key === "PageUp" ? -1 : 1, true);
-        return;
-      }
-
-      if (keys[event.key]) {
-        event.preventDefault();
-        moveByDays(keys[event.key], true);
-      }
+    calendarGrid.addEventListener("keydown",event => {
+      const dayMoves = {ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7};
+      if (event.key in dayMoves) { event.preventDefault(); moveDays(dayMoves[event.key]); }
+      else if (event.key === "Home") { event.preventDefault(); jumpToday(); }
+      else if (event.key === "PageUp" || event.key === "PageDown") { event.preventDefault(); moveMonths((event.key === "PageUp" ? -1 : 1) * (event.shiftKey ? 12 : 1)); }
     });
 
-    renderCalendar();
+    document.addEventListener("click",event => { if (settingsMenu.open && !settingsMenu.contains(event.target)) settingsMenu.removeAttribute("open"); });
+    document.addEventListener("keydown",event => { if (event.key === "Escape" && settingsMenu.open) { settingsMenu.removeAttribute("open"); settingsMenu.querySelector("summary").focus(); } });
 
-    if ("ResizeObserver" in window) {
-      const resizeObserver = new ResizeObserver(fitCalendarToWidget);
-      resizeObserver.observe(calendarCard);
-    }
-
-    requestAnimationFrame(fitCalendarToWidget);
-
-    setInterval(() => {
-      const latestToday = startOfDay(new Date());
-      const selectedWasToday = isSameDate(selectedDate, today);
-
-      if (!isSameDate(latestToday, today)) {
-        today = latestToday;
-
-        if (selectedWasToday) {
-          selectedDate = new Date(today);
-          updateVisibleWindowForSelectedDate();
-        }
-
-        renderCalendar();
-      }
-    }, 60_000);
+    createThemeControls(); applyTheme(preferences.theme); eventsToggle.checked = preferences.showEvents; mondayToggle.checked = preferences.mondayFirst; render();
+    if ("ResizeObserver" in window) new ResizeObserver(fit).observe(calendar); else addEventListener("resize",fit);
+    setInterval(()=>{ const current = startOfDay(new Date()); if (!sameDate(current,today)) { const followedToday = sameDate(selectedDate,today); today=current; if (followedToday) { selectedDate=new Date(today); updateVisibleMonth(); } render(); } },60000);
   </script>
 </body>
 </html>
+
